@@ -8,7 +8,7 @@ Introduction
 ------------
 **mef_reader_fieldtrip** is a [Fieldtrip](http://www.fieldtriptoolbox.org/) external toolbox that reads data compressed in Multiscale Electrophysiology Format (or Mayo EEG File, MEF). 
 Current version is capable of reading [MEF Version 2.1](https://github.com/benbrinkmann/mef_lib_2_1) and [MEF version 3.0](https://msel.mayo.edu/codes.html) files.
-The code of **mef_reader_fieldtrip** is hosted on Github of [Multimodal Neuroimaging Lab](https://github.com/MultimodalNeuroimagingLab) at the repository [mef_reader_fieldtrip](https://github.com/MultimodalNeuroimagingLab/mef_reader_fieldtrip).
+The code of **mef_reader_fieldtrip** is hosted on Github at [this](https://github.com/jiecui/mef_reader_fieldtrip) repository.
 The backbone of the toolbox is a C-MEX package which is also employed in [MEF_import](https://github.com/jiecui/MEF_import) to read MEF datasets into [EEGLAB](https://sccn.ucsd.edu/eeglab/index.php).
 
 

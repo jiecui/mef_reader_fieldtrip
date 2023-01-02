@@ -7,7 +7,7 @@ function test_mayo_mef
 % =========================================================================
 % Note of sample dataset
 % =========================================================================
-% Go to https://github.com/MultimodalNeuroimagingLab/mef_reader_fieldtrip
+% Go to https://github.com/jiecui/mef_reader_fieldtrip
 % and follow the instructions to download the sample dataset. Set the path
 % to the sample dataset below.
 

@@ -1,8 +1,8 @@
 MEF 3.0 / MED Fieldtrip External Toolbox (mef_reader_fieldtrip)
 =============================================================
 
-[![License](https://img.shields.io/github/license/MultimodalNeuroimagingLab/mef_reader_fieldtrip.svg?)](https://github.com/MultimodalNeuroimagingLab/mef_reader_fieldtrip)
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/MultimodalNeuroimagingLab/mef_reader_fieldtrip)
+[![License](https://img.shields.io/github/license/jiecui/mef_reader_fieldtrip.svg?)](https://github.com/MultimodalNeuroimagingLab/mef_reader_fieldtrip)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/jiecui/mef_reader_fieldtrip)
 
 Introduction
 ------------
@@ -16,8 +16,8 @@ Installation
 ------------
 1. Download and install [FieldTrip](https://github.com/fieldtrip/fieldtrip). Assume that the root directory of FieldTrip is `fieldtrip`.
 (_Please note that at present, **mef_reader_fieldtrip** has not been merged officially into Fieldtrip.
-You may download a fork of Fieldtrip [here](https://github.com/MultimodalNeuroimagingLab/fieldtrip/tree/master), where the toolbox has been installed_).
-1. Download [mef_reader_fieldtrip](https://github.com/MultimodalNeuroimagingLab/mef_reader_fieldtrip) package and unzip it if necessary.
+You may download a fork of Fieldtrip [here](https://github.com/jiecui/fieldtrip/tree/master), where the toolbox has been installed_).
+1. Download [mef_reader_fieldtrip](https://github.com/jiecui/mef_reader_fieldtrip) package and unzip it if necessary.
 1. If the version of Fieldtrip is not capable of recognizing MEF data type, look for the directory `fieldtrip` in **mef_reader_fieldtrip** package and then copy it to the root directory of FieldTrip `fieldtrip`.
 1. Otherwise, check the `external` directory of Fieldtrip. If the folder `mayo_mef` exists, go to next step. If not, only copy the folder `mayo_mef` under the directory `external` of **mef_reader_fieldtrip** package to the `external` directory of FieldTrip.
 1. In MATLAB, go to the directory `fieldtrip` and type commands `ft_defaults` and `ft_hastoolbox('mayo_mef',1);` to install the toolbox. 

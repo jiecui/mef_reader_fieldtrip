@@ -32,6 +32,7 @@ function setup_mayo_mex(options)
     end % positional
 
     arguments
+        options.DHNRootPath (1, 1) string = '' % full path to DHN root directory
         options.ForceBuildMex (1, 1) logical = false
     end % optional
 
@@ -40,7 +41,41 @@ function setup_mayo_mex(options)
     % ======================================================================
     % parameters
     % ----------
+    dhn_root = options.DHNRootPath; % if empty, use default root directory
     force_build_mex = options.ForceBuildMex;
+
+    % set default DHN root directory
+    % ------------------------------
+    if isempty(dhn_root)
+
+        switch computer
+            case 'MACI64' % Mac
+                user = getenv('USER');
+                dhn_root = fullfile(filesep, 'Users', user, 'DHN');
+            case 'GLNXA64' % Linux
+                user = getenv('USER');
+                dhn_root = fullfile(filesep, 'home', user, 'DHN');
+            case 'PCWIN64' % Windows
+                driver = getenv('HOMEDRIVE');
+                user = getenv('HOMEPATH');
+                dhn_root = fullfile(driver, user, 'DHN');
+            otherwise
+                ft_error('MAYO_MEF:setup_mayo_mex', ...
+                    'Unknown computer type %s. MED is not supported.\n', ...
+                    computer)
+        end % switch
+
+    end % if
+
+    if isfolder(dhn_root)
+        % add DHN root directory to MATLAB path
+        addpath(genpath(dhn_root))
+        med_mex_path = fullfile(dhn_root, 'read_MED', 'mex');
+    else
+        ft_warning('MAYO_MEF:setup_mayo_mex', ...
+            'DHN root directory %s does not exist. please install read_MED package (http://darkhorseneuro.com) or manually set DHN root directory\n', dhn_root)
+        med_mex_path=string(1,0);
+    end % if
 
     % get current directory
     % ---------------------
@@ -77,7 +112,7 @@ function valid_mex = check_mex_files(mex_path)
     % SETUP_MAYO_MEX.CHECK_MEX_FILES check if mex files are valid
 
     arguments
-	mex_path (1, 1) string % full path to mex files
+        mex_path (1, 1) string % full path to mex files
     end % positional
 
 end % function

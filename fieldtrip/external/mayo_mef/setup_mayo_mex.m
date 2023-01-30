@@ -17,7 +17,7 @@ function setup_mayo_mex(options)
     % See also make_mex_mef, test_mayo_mef.
 
     % Copyright 2020 Richard J. Cui. Created: Fri 05/15/2020 10:33:00.474 AM
-    % $ Revision: 0.2 $  $ Date: Thu 01/26/2023 10:35:01.233 PM $
+    % $ Revision: 0.2 $  $ Date: Sun 01/29/2023  7:18:00.509 PM $
     %
     % Mayo Foundation for Medical Education and Research
     % Mayo Clinic St. Mary Campus
@@ -44,8 +44,7 @@ function setup_mayo_mex(options)
     dhn_root = options.DHNRootPath; % if empty, use default root directory
     force_build_mex = options.ForceBuildMex;
 
-    % set default DHN root directory
-    % ------------------------------
+    % * set default DHN root directory
     if isempty(dhn_root)
 
         switch computer
@@ -74,15 +73,17 @@ function setup_mayo_mex(options)
     else
         ft_warning('MAYO_MEF:setup_mayo_mex', ...
             'DHN root directory %s does not exist. please install read_MED package (http://darkhorseneuro.com) or manually set DHN root directory\n', dhn_root)
-        med_mex_path=string(1,0);
+        med_mex_path = string(1, 0);
     end % if
 
     % get current directory
     % ---------------------
     cur_dir = pwd;
 
-    % check mex binary
-    % ----------------
+    % check MEF mex binary
+    % --------------------
+    fprintf('Setting up MEF mex binary...\n')
+
     % directory of setup_mayo_mex.m assumed in mayo_mef
     mayo_mef = fileparts(mfilename('fullpath'));
 
@@ -98,6 +99,12 @@ function setup_mayo_mex(options)
         end % if
 
     end % if
+
+    % check MED mex binary
+    % --------------------
+    fprintf('Setting up MED mex binary...\n')
+
+    % TODO: check if MED mex files are valid
 
     % return to original directory
     % ----------------------------

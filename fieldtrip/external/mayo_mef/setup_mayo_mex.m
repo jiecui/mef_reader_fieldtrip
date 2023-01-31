@@ -17,7 +17,7 @@ function setup_mayo_mex(options)
     % See also make_mex_mef, test_mayo_mef.
 
     % Copyright 2020 Richard J. Cui. Created: Fri 05/15/2020 10:33:00.474 AM
-    % $ Revision: 0.2 $  $ Date: Sun 01/29/2023  7:18:00.509 PM $
+    % $ Revision: 0.2 $  $ Date: Mon 01/30/2023 10:12:07.571 PM $
     %
     % Mayo Foundation for Medical Education and Research
     % Mayo Clinic St. Mary Campus
@@ -32,7 +32,7 @@ function setup_mayo_mex(options)
     end % positional
 
     arguments
-        options.DHNRootPath (1, 1) string = '' % full path to DHN root directory
+        options.DHNRootPath (1, :) char = '' % full path to DHN root directory
         options.ForceBuildMex (1, 1) logical = false
     end % optional
 
@@ -69,7 +69,7 @@ function setup_mayo_mex(options)
     if isfolder(dhn_root)
         % add DHN root directory to MATLAB path
         addpath(genpath(dhn_root))
-        med_mex_path = fullfile(dhn_root, 'read_MED', 'mex');
+        med_mex_path = fullfile(dhn_root, 'read_MED', 'Resources');
     else
         ft_warning('MAYO_MEF:setup_mayo_mex', ...
             'DHN root directory %s does not exist. please install read_MED package (http://darkhorseneuro.com) or manually set DHN root directory\n', dhn_root)
@@ -78,7 +78,7 @@ function setup_mayo_mex(options)
 
     % install mayo_mef package
     % ------------------------
-    ft_hastoolbox('mayo_mef', 1)
+    ft_hastoolbox('mayo_mef', 1);
 
     % get current directory
     % ---------------------
@@ -89,16 +89,17 @@ function setup_mayo_mex(options)
     fprintf('Setting up MEF mex binary...\n')
 
     % directory of setup_mayo_mex.m assumed in mayo_mef
-    mayo_mef = fileparts(mfilename('fullpath'));
+    mayo_mef = fileparts(mfilename('fullpath')); % store mef mex here
+    mef_mex_path = fullfile(mayo_mef, 'mex_mef');
 
     if force_build_mex
-        cd([mayo_mef, filesep, 'mex_mef'])
+        cd(mef_mex_path)
         make_mex_mef
     else % check mex files in mayo_mef
         valid_mex = check_mex_files(mayo_mef, MexType = "MEF");
 
         if valid_mex == false
-            cd([mayo_mef, filesep, 'mex_mef'])
+            cd(mef_mex_path)
             make_mex_mef
         end % if
 
@@ -144,10 +145,10 @@ function valid_mex = check_mex_files(mex_path, options)
 
     switch mex_type
         case 'MEF'
-            valid_mex_1 = isfile(fullfile(mex_path + "read_mef_header_2p1" + "."+mexext));
-            valid_mex_2 = isfile(fullfile(mex_path + "decompress_mef_2p1" + "."+mexext));
-            valid_mex_3 = isfile(fullfile(mex_path + "read_mef_session_metadata" + "."+mexext));
-            valid_mex_4 = isfile(fullfile(mex_path + "read_mef_ts_data" + "."+mexext));
+            valid_mex_1 = isfile(fullfile(mex_path, "read_mef_header_2p1" + "."+mexext));
+            valid_mex_2 = isfile(fullfile(mex_path, "decompress_mef_2p1" + "."+mexext));
+            valid_mex_3 = isfile(fullfile(mex_path, "read_mef_session_metadata" + "."+mexext));
+            valid_mex_4 = isfile(fullfile(mex_path, "read_mef_ts_data" + "."+mexext));
 
             valid_mex = valid_mex_1 && valid_mex_2 && valid_mex_3 && valid_mex_4;
 
@@ -158,9 +159,9 @@ function valid_mex = check_mex_files(mex_path, options)
             end % if
 
         case 'MED'
-            valid_mex_1 = isfile(fullfile(mex_path + "load_session" + "."+mexext));
-            valid_mex_2 = isfile(fullfile(mex_path + "matrix_MED_exec" + "."+mexext));
-            valid_mex_3 = isfile(fullfile(mex_path + "read_MED_exec" + "."+mexext));
+            valid_mex_1 = isfile(fullfile(mex_path, "load_session" + "."+mexext));
+            valid_mex_2 = isfile(fullfile(mex_path, "matrix_MED_exec" + "." + mexext));
+            valid_mex_3 = isfile(fullfile(mex_path, "read_MED_exec" + "." + mexext));
 
             valid_mex = valid_mex_1 && valid_mex_2 && valid_mex_3;
 

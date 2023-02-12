@@ -1682,6 +1682,10 @@ switch headerformat
     ft_hastoolbox('mayo_mef', 1); % make sure mayo_mef exists
     hdr = read_mayo_mef21(filename, password);
 
+  case 'dhn_med10'
+    ft_hastoolbox('mayo_mef', 1); % make sure mayo_mef exists
+    hdr = read_mayo_med10(filename, password);
+
   case 'mega_neurone'
     % ensure that this external toolbox is on the path
     ft_hastoolbox('neurone', 1);

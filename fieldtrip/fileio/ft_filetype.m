@@ -1238,7 +1238,7 @@ elseif filetype_check_extension(filename, '.minf') && filetype_check_ascii(filen
   % MEF 3.0, see: https://msel.mayo.edu/codes.html
   % MED 1.0, see: http://www.darkhorseneuro.com
 elseif isfolder(filename) && any(filetype_check_extension(filename, {'.medd', '.tied', '.rdat','recd','.ridx'}))
-  type = 'dhn_1p0';
+  type = 'dhn_med10';
   manufacturer = 'Dark Horse Neuro';
   content = 'Multiscale Electrophysiology Data 1.0';
 elseif isfolder(filename) && any(filetype_check_extension(filename, {'.mefd', '.timd', '.segd'}))

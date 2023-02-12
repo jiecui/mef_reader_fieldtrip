@@ -10,7 +10,7 @@ function dhn_out = read_dhn_med10(filename, password, sortchannel, hdr, begsampl
     %
     % Input(s):
     %   filename        - [char] name of the file or folder of the dataset
-    %   password        - [struct] (opt) password structure of MED 1.0 data (see
+    %   password        - [char] (opt) password structure of MED 1.0 data (see
     %                     MEDSession_1p0)
     %   sortchannel     - [char] (opt) sort channel order either alphabetically
     %                     'alphabet' or numerically 'number' (default = 'alphabet')

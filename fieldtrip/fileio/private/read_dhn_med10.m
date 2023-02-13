@@ -44,7 +44,7 @@ function dhn_out = read_dhn_med10(filename, password, sortchannel, hdr, begsampl
     % parse inputs
     % ======================================================================
     arguments
-        filename (1, 1) string
+        filename (1, :) char
         password (1, :) char = 'L2_password' % example_data password =='L1_password' or 'L2_password'
         sortchannel (1, 1) string = "alphabet"
         hdr (1, 1) struct = struct()

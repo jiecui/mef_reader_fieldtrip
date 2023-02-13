@@ -9,6 +9,17 @@ classdef MultiscaleElectrophysiologyData < handle
     %
     % Email: richard.cui@utoronto.ca
 
+    % =====================================================================
+    % properties
+    % =====================================================================
+    % MED information
+    % ---------------
+    properties (SetAccess = protected)
+        MEDVersion (1, 1) double {mustBeNonnegative, mustBeFinite} = 0.0 % MED version
+    end % properties
+
+    % MED channel information
+    % -----------------------
     properties
 
     end % properties

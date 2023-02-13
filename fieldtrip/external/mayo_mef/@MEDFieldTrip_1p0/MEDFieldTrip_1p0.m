@@ -44,7 +44,7 @@ classdef MEDFieldTrip_1p0 < MEDSession_1p0 & MEDFieldTrip
             % operations during construction
             % ------------------------------
             % call super class
-            this@MEDFieldTrip; % TODO: this is not working yet
+            this@MEDFieldTrip; 
             this@MEDSession_1p0(varargin{:}); % TODO: this is not working yet
 
             % set class properties

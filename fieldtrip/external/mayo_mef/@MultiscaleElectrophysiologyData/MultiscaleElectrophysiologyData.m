@@ -15,13 +15,14 @@ classdef MultiscaleElectrophysiologyData < handle
     % MED information
     % ---------------
     properties (SetAccess = protected)
-        MEDVersion (1, 1) double {mustBeNonnegative, mustBeFinite} = 0.0 % MED version
+        MEDVersion (1, 1) double = NaN % MED version
     end % properties
 
     % MED channel information
     % -----------------------
-    properties
-
+    properties (SetAccess = protected, Hidden = true)
+        FilePath % [str] filepath of MED channel file
+        FileName % [str] filename of MED channel file including ext
     end % properties
 
     methods

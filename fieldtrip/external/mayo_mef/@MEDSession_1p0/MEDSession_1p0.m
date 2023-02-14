@@ -70,6 +70,8 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
                 'invalid MED version; this function can serve only MED 1.0')
             end % if
 
+            % * set session information
+
         end
 
     end % methods

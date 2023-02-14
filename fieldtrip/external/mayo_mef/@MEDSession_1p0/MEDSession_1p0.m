@@ -1,4 +1,4 @@
-classdef MEDSession_1p0 < MEDSession
+classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
     % Class MEDSESSION_1P0 processes MED 1.0 data.
     %
     % Syntax:
@@ -33,6 +33,7 @@ classdef MEDSession_1p0 < MEDSession
     % properties
     % =====================================================================
     properties
+        MetaData % metadata structure of the session
         PathToSession % not include session name and extension
         SessionName % not include extension
         SessionExt % session extension (includes the '.')
@@ -46,7 +47,10 @@ classdef MEDSession_1p0 < MEDSession
     methods
 
         function this = MEDSession_1p0(filename, password, sortchannel)
-
+            % MEFSession_3p0 Construct an instance of this class
+            % ==================================================
+            % parse inputs
+            % -------------
             arguments
                 filename (1, :) char
                 password (1, :) char = 'L2_password' % example_data password =='L1_password' or 'L2_password'
@@ -55,11 +59,30 @@ classdef MEDSession_1p0 < MEDSession
 
             % operations during construction
             % ------------------------------
-	    this@MEDSession;
+            this@MEDSession();
+            this@MultiscaleElectrophysiologyData_1p0();
 
+            % * set MEF version to serve
+            if isnan(this.MEDVersion) == true
+                this.MEDVersion = 1.0;
+            elseif this.MEDVersion ~= 1.0
+                error('MEDSession_3p0:invalidMEDVer', ...
+                'invalid MED version; this function can serve only MED 1.0')
+            end % if
 
         end
 
+    end % methods
+
+    % static methods
+    % -------------
+    methods (Static)
+
+    end % methods
+
+    % other methods
+    % -------------
+    methods
     end % methods
 
 end % classdef

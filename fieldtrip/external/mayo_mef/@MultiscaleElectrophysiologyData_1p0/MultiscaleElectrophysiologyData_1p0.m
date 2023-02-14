@@ -64,7 +64,11 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
                 options.Password (1, :) char = '';
             end % optional
 
-            if ~isempty(file1st)
+            if isempty(file1st)
+
+                filepath = '';
+                filename = '';
+            else
 
                 if isempty(file2nd)
                     [fp, fn, ext] = fileparts(file1st);
@@ -75,9 +79,8 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
                     filename = file2nd;
                 end % if
 
-            else
-                filepath = '';
-                filename = '';
+                pass_word = options.Password;
+
             end % if
 
             % operations during construction
@@ -86,15 +89,31 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
             this@MultiscaleElectrophysiologyData();
 
             % * set and check MED version
-            if this.MEDVersion == 0
+            if isnan(this.MEDVersion)
                 this.MEDVersion = 1.0;
             elseif this.MEDVersion ~= 1.0
                 error('MultiscaleElectrophysiologyData_1p0:InvalidMEDVer', ...
                     'Invalid MED version %f. Can only handle 1.0.', this.MEDVersion);
             end % if
 
+            % * set channel info
+            if ~isempty(filepath) && ~isempty(filename)
+                this.FilePath = filepath;
+                this.FileName = filename;
+                this.Password = pass_word;
+            end % if
+
+            % * check version
+
+            % * set sampling information
+
         end
 
+    end % methods
+
+    % other methods
+    % -------------
+    methods
     end % methods
 
 end % classdef

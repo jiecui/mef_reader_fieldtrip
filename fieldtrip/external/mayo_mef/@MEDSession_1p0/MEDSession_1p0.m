@@ -71,6 +71,17 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
             end % if
 
             % * set session information
+            [sesspath, channames] = this.findSessPath(filename);
+
+            if ~isempty(sesspath)
+                this.setSessionInfo(sesspath, password, sortchannel);
+            end % if
+
+            if ~isempty(channames) && numel(channames) == 1
+                this.SelectedChannel = channames;
+            else
+                this.SelectedChannel = this.ChannelName;
+            end % if
 
         end
 
@@ -85,6 +96,8 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
     % other methods
     % -------------
     methods
+        [sesspath, channames] = findSessPath(this, filename) % find session path and channel name
+        metadata = setSessionInfo(this, varargin) % set session information
     end % methods
 
 end % classdef

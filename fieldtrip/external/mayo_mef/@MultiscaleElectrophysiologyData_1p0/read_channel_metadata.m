@@ -41,18 +41,8 @@ function chan_meta = read_channel_metadata(this, wholename, password)
 
     % get channel metadata
     % --------------------
-    s = read_MED(session_name, [], [], 1, 1, password);
-    num_chans = length(s.channels);
-
-    for k = 1:num_chans
-
-        if strcmp(s.channels(k).metadata.channel_name, channel_name)
-            chan_meta = s.channels(k).metadata;
-            break
-        end
-
-    end
-
+    s = read_MED(session_name, [], [], 1, 1, password, channel_name, false);
+    chan_meta = s.channels.metadata;
     this.ChannelMetadata = chan_meta;
 
 end % function read_channel_metadata

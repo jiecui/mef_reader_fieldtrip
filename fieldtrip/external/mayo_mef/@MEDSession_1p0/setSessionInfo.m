@@ -6,6 +6,13 @@ function metadata = setSessionInfo(this, sesspath, password, sort_channel)
     %   setSessionInfo(__, sort_channel)
     %
     % Input(s):
+    %   this            - [obj] MEDSession_1p0 object
+    %   sesspath        - [char] session path of MED 3.0 data
+    %   password        - [struct] MEF 3.0 password structure (see MEFSession_3p0
+    %                     for the details)
+    %   sort_channel    - [char] (opt) sort channel according to either 'alphabet' of
+    %                     the channel names or 'number' of the acquisiton
+    %                     channel number (default = 'alphabet')
     %
     % Output(s):
     %

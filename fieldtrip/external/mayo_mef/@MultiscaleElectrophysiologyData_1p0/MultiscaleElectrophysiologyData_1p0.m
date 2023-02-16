@@ -5,7 +5,9 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     %   this = MultiscaleElectrophysiologyDile_1p0();
     %   this = __(wholename);
     %   this = __(filepath, filename);
-    %   this = __(__, 'Password', password);
+    %   this = __(__, 'Level1Password', level_1_pw);
+    %   this = __(__, 'Level2Password', level_2_pw);
+    %   this = __(__, 'AccessLevel', access_level);
     %
     % Input(s):
     %   wholename       - [char] (optional) session fullpath plus channel
@@ -14,8 +16,10 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     %                     MEF file
     %   filename        - [str] (optional) name of MEF channel file,
     %                     including ext
-    %   password        - [char] (opt) password structure of MED 1.0 data (see
-    %                     MEDSession_1p0)
+    %   level_1_pw      - [str] (para) password of level 1 (default = '')
+    %   level_2_pw      - [str] (para) password of level 2 (default = '')
+    %   access_level    - [str] (para) data decode level to be used
+    %                     (default = 1)
     %
     % Output(s):
     %
@@ -28,7 +32,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Sun 02/12/2023 10:20:18.872 PM
-    % $Revision: 0.1 $  $Date: Sun 02/12/2023 10:20:18.872 PM $
+    % $Revision: 0.2 $  $Date: Wed 02/15/2023 20:55:45.173193 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -41,7 +45,11 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     % MED file info
     % -------------
     properties (SetAccess = protected, Hidden = true)
-        Password (1, :) char = ''; % password to decrypt MED file
+        Level1Password (1, :) char % level 1 password
+        Level2Password (1, :) char % [str] level 2 password
+        AccessLevel (1, 1) double {mustBeInteger, ...
+                                       mustBeMember(AccessLevel, [1, 2])} = 1 % [num] access level of data
+        ChannelMetadata (1, 1) struct % channel metadata structure
     end % properties
 
     % =====================================================================
@@ -61,7 +69,9 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
             end % positional
 
             arguments
-                options.Password (1, :) char = '';
+                options.Level1Password (1, :) char = '';
+                options.Level2Password (1, :) char = '';
+                options.AccessLevel (1, 1) double {mustBeInteger, mustBePositive} = 1;
             end % optional
 
             if isempty(file1st)
@@ -79,7 +89,9 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
                     filename = file2nd;
                 end % if
 
-                pass_word = options.Password;
+                pw_1 = options.Level1Password;
+                pw_2 = options.Level2Password;
+                access_level = options.AccessLevel;
 
             end % if
 
@@ -100,7 +112,27 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
             if ~isempty(filepath) && ~isempty(filename)
                 this.FilePath = filepath;
                 this.FileName = filename;
-                this.Password = pass_word;
+                this.Level1Password = pw_1;
+                this.Level2Password = pw_2;
+                this.AccessLevel = access_level;
+
+                % read channel metadata
+                switch this.AccessLevel
+                    case 1
+                        password = this.Level1Password;
+                    case 2
+                        password = this.Level2Password;
+                end % switch
+
+                wholename = fullfile(this.FilePath, this.FileName);
+
+                if isfolder(wholename) == false
+                    error('MultiscaleElectrophysiologyData_1p0:invalidChannel', ...
+                        'cannot find channel %s', wholename)
+                end % if
+
+                this.read_channel_metadata(wholename, password);
+
             end % if
 
             % * check version
@@ -114,6 +146,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     % other methods
     % -------------
     methods
+        channel = read_channel_metadata(this, varargin) % read channel metadata
     end % methods
 
 end % classdef

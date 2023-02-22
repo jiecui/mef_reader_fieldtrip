@@ -8,13 +8,14 @@ function metadata = setSessionInfo(this, sesspath, password, sort_channel)
     % Input(s):
     %   this            - [obj] MEDSession_1p0 object
     %   sesspath        - [char] session path of MED 3.0 data
-    %   password        - [struct] MEF 3.0 password structure (see MEFSession_3p0
+    %   password        - [struct] MED 1.0 password structure (see MEDSession_1p0
     %                     for the details)
     %   sort_channel    - [char] (opt) sort channel according to either 'alphabet' of
     %                     the channel names or 'number' of the acquisiton
     %                     channel number (default = 'alphabet')
     %
     % Output(s):
+    %   metadata        - [struct] MED 1.0 session metadata
     %
     % Example:
     %
@@ -31,6 +32,23 @@ function metadata = setSessionInfo(this, sesspath, password, sort_channel)
     % Rochester, MN 55906, USA
     %
     % Email: richard.cui@utoronto.ca
+
+    % ======================================================================
+    % parse inputs
+    % ======================================================================
+    arguments
+        this (1, 1) MEDSession_1p0
+        sesspath (1, :) char
+        password (1, 1) struct
+        sort_channel (1, :) char = 'alphabet'
+    end % positional
+
+    % ======================================================================
+    % main
+    % ======================================================================
+    this.SessionPath = sesspath; % set session path of MED data
+    this.Password = password; % set password of MED data
+    this.get_sess_parts(); % get session parts
 
 end % function setSessionInfo
 

@@ -1,5 +1,14 @@
 classdef MEDSession < handle
     % Class MEDSESSION processes MED session data.
+    %
+    % Syntax:
+    %   this = MEDSession();
+    %
+    % Input(s):
+    %
+    % Output(s):
+    %
+    % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/21/2023 12:21:48.365 AM
     % $Revision: 0.1 $  $Date: Tue 02/21/2023 12:21:48.371 AM $
@@ -9,16 +18,40 @@ classdef MEDSession < handle
     %
     % Email: richard.cui@utoronto.ca
 
+    % =====================================================================
+    % properties
+    % =====================================================================
+    % properties of importing session
+    % -------------------------------
+    properties
+        SelectedChannel % channels selected
+        StartEnd % start and end points to import the session
+        SEUnit % unit of StartEnd
+    end % properties
+
+    % properties of session information
+    % ---------------------------------
     properties
 
     end % properties
 
+    % =====================================================================
+    % methods
+    % =====================================================================
+    % the constructor
     methods
 
         function this = MEDSession()
 
         end
 
+    end % methods
+
+    % other methods
+    % -------------
+    methods
+        varargout = get_sessinfo(this) % get sess info from data
+        [path_to_sess, sess_name, sess_ext] = get_sess_parts(this, varargin) % get the parts of session path
     end % methods
 
 end % classdef

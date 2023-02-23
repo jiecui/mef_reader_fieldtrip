@@ -23,14 +23,14 @@ function [sess_info, unit] = get_info_data(this)
 % Note:
 %   This function obtains information about the session from the data
 %   directly.  Other information, such as session directory and password,
-%   should be provided via MEFSession_2p1 object.
+%   should be provided via MEFSession_3p0 object.
 %
 % References:
 %
 % See also MEFSession_3p0, get_sessinfo.
 
 % Copyright 2020 Richard J. Cui. Created: Fri 01/03/2020  4:19:10.683 PM
-% $ Revision: 0.3 $  $ Date: Thu 02/20/2020 11:49:42.626 AM $
+% $ Revision: 0.4 $  $ Date: Wed 02/22/2023 10:27:45.679 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA

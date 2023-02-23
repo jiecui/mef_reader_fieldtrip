@@ -1,5 +1,5 @@
 function [sess_info, unit] = get_info_data(this)
-    % MEDSESSION_1P0.GET_INFO_DATA (summary)
+    % MEDSESSION_1P0.GET_INFO_DATA get session info from data
     %
     % Syntax:
     %

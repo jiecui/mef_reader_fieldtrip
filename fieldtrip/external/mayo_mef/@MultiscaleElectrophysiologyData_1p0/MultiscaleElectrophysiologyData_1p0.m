@@ -133,11 +133,11 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
 
                 this.read_channel_metadata(wholename, password);
 
-            end % if
+                % set sampling information
+                this.ChanSamplingFreq = this.ChannelMetadata.sampling_frequency;
+                this.getSampleTimeInterval();
 
-            % * set sampling information
-            this.ChanSamplingFreq = this.ChannelMetadata.sampling_frequency;
-            this.getSampleTimeInterval();
+            end % if
 
         end
 

@@ -32,7 +32,7 @@ function [sesspath, channames] = findSessPath(this, filename)
     % parse inputs
     % ======================================================================
     arguments
-        this (1, 1) MEDsession_1p0
+        this (1, 1) MEDSession_1p0
         filename (1, :) char = ''
     end % positional
 

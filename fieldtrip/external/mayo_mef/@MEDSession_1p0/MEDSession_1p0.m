@@ -10,8 +10,12 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
     % Input(s):
     %   filename    - [char] (opt) MED 1.0 session path, channel or data file
     %                 (default = '')
-    %   password    - [char] (opt) password structure of MED 1.0 data (see
-    %                 MEDSession_1p0)
+    %   password    - [struct] (opt) structure of MED 1.0 passowrd (default
+    %                 = struct('Level1Password', '', 'Level2Password', '',...
+    %                 'AccessLevel', 1);)
+    %                 .Level1Password (default = '')
+    %                 .Level2Password (default = '')
+    %                 .AccessLevel (default = 1)
     %   sortchannel - [char] (para) sort channel according to either 'alphabet' of
     %                 the channel names or 'number' of the acquisiton
     %                 channel number (default = 'alphabet')
@@ -22,7 +26,7 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
     % See also get_sessinfo.
 
     % Copyright 2023 Richard J. Cui. Created: Sun 02/12/2023  9:10:13.351 PM
-    % $Revision: 0.1 $  $Date: Sun 02/12/2023  9:10:13.352 PM $
+    % $Revision: 0.2 $  $Date: Sun 02/26/2023 11:18:14.135 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -53,7 +57,8 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
             % -------------
             arguments
                 filename (1, :) char
-                password (1, :) char = 'L2_password' % example_data password =='L1_password' or 'L2_password'
+                password (1, 1) struct = struct('Level1Password', '', 'Level2Password', '', ...
+                    'AccessLevel', 1) % example_data password =='L1_password' or 'L2_password'
                 sortchannel (1, 1) string = "alphabet"
             end % positional
 

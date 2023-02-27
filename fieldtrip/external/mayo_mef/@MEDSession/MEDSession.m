@@ -11,7 +11,7 @@ classdef MEDSession < handle
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/21/2023 12:21:48.365 AM
-    % $Revision: 0.1 $  $Date: Tue 02/21/2023 12:21:48.371 AM $
+    % $Revision: 0.2 $  $Date: Sun 02/26/2023 11:18:14.135 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -32,7 +32,8 @@ classdef MEDSession < handle
     % properties of session information
     % ---------------------------------
     properties
-
+        SessionPath % session directory
+        Password % password structure of the session
     end % properties
 
     % =====================================================================

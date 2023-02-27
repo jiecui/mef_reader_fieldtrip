@@ -21,7 +21,7 @@ function [sesspath, channames] = findSessPath(this, filename)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/14/2023  9:43:31.226 PM
-    % $Revision: 0.1 $  $Date: Tue 02/14/2023  9:43:31.230 PM $
+    % $Revision: 0.2 $  $Date: Sun 02/26/2023 11:09:45.566 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -59,7 +59,7 @@ function [sesspath, channames] = findSessPath(this, filename)
                 if isempty(listing)
                     channames = ""; % no channel
                 else
-                    channames = string({listing.name});
+                    [~, channames] = fileparts(string({listing.name}));
                 end % if
 
             else

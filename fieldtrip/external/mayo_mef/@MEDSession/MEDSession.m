@@ -34,6 +34,7 @@ classdef MEDSession < handle
     properties
         SessionPath % session directory
         Password % password structure of the session
+        ChannelName % channel names
     end % properties
 
     % =====================================================================

@@ -103,6 +103,7 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
     methods
         [sesspath, channames] = findSessPath(this, filename) % find session path and channel name
         metadata = setSessionInfo(this, varargin) % set session information
+        metadata = read_med_session_metadata_1p0(this, varargin) % get session metadata of MED 1.0
     end % methods
 
 end % classdef

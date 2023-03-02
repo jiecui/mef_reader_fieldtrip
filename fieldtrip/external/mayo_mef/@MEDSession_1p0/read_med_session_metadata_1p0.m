@@ -1,4 +1,4 @@
-function metadata = read_med_session_metadata_1p0(this)
+function metadata = read_med_session_metadata_1p0(this, sess_path, password)
     % MEDSESSION_1P0.READ_MED_SESSION_METADATA_1P0 (summary)
     %
     % Syntax:

@@ -147,6 +147,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     % -------------
     methods
         channel = read_channel_metadata(this, varargin) % read channel metadata
+        pw = processPassword(this, varargin) % process MEF 3.0 password
     end % methods
 
 end % classdef

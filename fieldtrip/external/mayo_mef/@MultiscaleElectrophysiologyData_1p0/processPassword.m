@@ -33,7 +33,7 @@ function pw = processPassword(this, password, options)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Thu 03/02/2023 12:38:04.168 AM
-    % $Revision: 0.1 $  $Date: Thu 03/02/2023 12:38:04.175 AM $
+    % $Revision: 0.2 $  $Date: Thu 03/08/2023 12:38:04.175 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -58,7 +58,30 @@ function pw = processPassword(this, password, options)
     % ======================================================================
     % main
     % ======================================================================
-    
+    % get parameters
+    % --------------
+    if ~isempty(password)
+        level_1_pw = password.Level1Password;
+        level_2_pw = password.Level2Password;
+        access_level = password.AccessLevel;
+    else
+        level_1_pw = options.level_1_pw;
+        level_2_pw = options.level_2_pw;
+        access_level = options.access_level;
+    end % if
+
+    % process password
+    % ----------------
+    switch access_level
+        case '1'
+            pw = level_1_pw;
+        case '2'
+            pw = level_2_pw;
+        otherwise
+            error(sprintf('%s:%s:invalidAccessLevel', mfilename('class'), mfilename), ...
+            'invalid access level; access level must be 1 or 2')
+    end % switch
+
 end % function processPassword
 
 % [EOF]

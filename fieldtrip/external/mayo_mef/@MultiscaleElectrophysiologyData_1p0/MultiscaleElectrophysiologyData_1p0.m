@@ -32,7 +32,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Sun 02/12/2023 10:20:18.872 PM
-    % $Revision: 0.2 $  $Date: Wed 02/15/2023 20:55:45.173193 PM $
+    % $Revision: 0.3 $  $Date: Thu 04/13/2023 12:24:02.013 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -50,6 +50,9 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
         AccessLevel (1, 1) double {mustBeInteger, ...
                                        mustBeMember(AccessLevel, [1, 2])} = 1 % [num] access level of data
         ChannelMetadata (1, 1) struct % channel metadata structure
+        % .records: event records
+        % .metadata: channel metadata
+        % .contigua: contiguity information
     end % properties
 
     % =====================================================================
@@ -134,7 +137,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
                 this.read_channel_metadata(wholename, password);
 
                 % set sampling information
-                this.ChanSamplingFreq = this.ChannelMetadata.sampling_frequency;
+                this.ChanSamplingFreq = this.ChannelMetadata.metadata.sampling_frequency;
                 this.getSampleTimeInterval();
 
             end % if

@@ -32,7 +32,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Sun 02/12/2023 10:20:18.872 PM
-    % $Revision: 0.3 $  $Date: Thu 04/13/2023 12:24:02.013 AM $
+    % $Revision: 0.4 $  $Date: Thu 04/14/2023 12:24:02.013 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -44,15 +44,18 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     % =====================================================================
     % MED file info
     % -------------
+    properties (SetAccess = protected)
+        ChannelMetadata (1, 1) struct % channel metadata structure
+        % .records: event records
+        % .metadata: channel metadata
+        % .contigua: contiguity information
+    end % properties
+
     properties (SetAccess = protected, Hidden = true)
         Level1Password (1, :) char % level 1 password
         Level2Password (1, :) char % [str] level 2 password
         AccessLevel (1, 1) double {mustBeInteger, ...
                                        mustBeMember(AccessLevel, [1, 2])} = 1 % [num] access level of data
-        ChannelMetadata (1, 1) struct % channel metadata structure
-        % .records: event records
-        % .metadata: channel metadata
-        % .contigua: contiguity information
     end % properties
 
     % =====================================================================
@@ -150,6 +153,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     % -------------
     methods
         channel = read_channel_metadata(this, varargin) % read channel metadata
+        seg_cont = analyzeContinuity(this, varargin) % analyze continuity of data sampling
         pw = processPassword(this, varargin) % process MEF 3.0 password
     end % methods
 

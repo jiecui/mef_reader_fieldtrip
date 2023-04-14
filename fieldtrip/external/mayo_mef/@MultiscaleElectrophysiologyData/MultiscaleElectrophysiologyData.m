@@ -17,17 +17,19 @@ classdef MultiscaleElectrophysiologyData < handle
     properties (SetAccess = protected)
         MEDVersion (1, 1) double = NaN % MED version
         MPS = 1e6 % microseconds per seconds
-        FilePath % [str] filepath of MED channel file
-        FileName % [str] filename of MED channel file including ext
-        ChanSamplingFreq % sampling frequency of channel (Hz)
-        SampleTimeInterval % sample time interval = [lower, upper] (uUTC),
-        % indicating the lower and upper bound of the time interval between
-        % two successive samples
     end % properties
 
     % MED channel information
     % -----------------------
     properties (SetAccess = protected, Hidden = true)
+        FilePath % [str] filepath of MED channel file
+        FileName % [str] filename of MED channel file including ext
+        Continuity % [table] data segments of conituous sampling (see
+        % analyzeContinuity.m for the detail)
+        ChanSamplingFreq % sampling frequency of channel (Hz)
+        SampleTimeInterval % sample time interval = [lower, upper] (uUTC),
+        % indicating the lower and upper bound of the time interval between
+        % two successive samples
     end % properties
 
     methods

@@ -1,5 +1,5 @@
 function seg_cont = analyzeContinuity(this)
-    % ANALYZECONTINUITY (summary)
+    % MULTISCALEELECTROPHYSIOLOGYDATA_1P0.ANALYZECONTINUITY (summary)
     %
     % Syntax:
     %
@@ -23,6 +23,18 @@ function seg_cont = analyzeContinuity(this)
     %
     % Email: richard.cui@utoronto.ca
 
+    % ======================================================================
+    % parse inputs
+    % ======================================================================
+    arguments
+        this (1,1) multiscaleElectrophysiologyData_1p0
+    end % positional
+
+    % ======================================================================
+    % main
+    % ======================================================================
+    meta_data = this.ChannelMetaData;
+    
 end % function analyzeContinuity
 
 % [EOF]

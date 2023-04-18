@@ -143,6 +143,8 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
                 this.ChanSamplingFreq = this.ChannelMetadata.metadata.sampling_frequency;
                 this.getSampleTimeInterval();
 
+                % analyze continuity
+
             end % if
 
         end

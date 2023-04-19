@@ -4,8 +4,18 @@ function seg_cont = analyzeContinuity(this)
     % Syntax:
     %
     % Input(s):
+    %   this            - [obj] MultiscaleElectrophysiologyData_1p0 object
     %
     % Output(s):
+    %   seg_cont        - [table] N x 6, information of segments of continuity
+    %                     of sampling in the data file.  The 6 variable names
+    %                     are:
+    %                     start_index       : [num] sample index of data segment start
+    %                     end_index         : [num] sample index of data segment end
+    %                     start_time        : [num] sample time of data segment start (in uUTC)
+    %                     start_time_string : [string] sample time of data segment start (in string)
+    %                     end_time          : [num] sample time of data segment end (in uUTC)
+    %                     end_time_string   : [string] sample time of data segment end (in string)
     %
     % Example:
     %
@@ -27,14 +37,20 @@ function seg_cont = analyzeContinuity(this)
     % parse inputs
     % ======================================================================
     arguments
-        this (1,1) multiscaleElectrophysiologyData_1p0
+        this (1, 1) multiscaleElectrophysiologyData_1p0
     end % positional
 
     % ======================================================================
     % main
     % ======================================================================
     meta_data = this.ChannelMetaData;
-    
+
+    % get the continuity table
+    % ------------------------
+    seg_cont = struct2table(meta_data.contigua);
+    seg_cont.start_time_string = string(seg_cont.start_time_string);
+    seg_cont.end_time_string = string(seg_cont.end_time_string);
+
 end % function analyzeContinuity
 
 % [EOF]

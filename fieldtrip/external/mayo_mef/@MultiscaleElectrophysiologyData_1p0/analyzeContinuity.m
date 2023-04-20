@@ -51,6 +51,10 @@ function seg_cont = analyzeContinuity(this)
     seg_cont.start_time_string = string(seg_cont.start_time_string);
     seg_cont.end_time_string = string(seg_cont.end_time_string);
 
+    % update
+    % -------
+    this.Continuity = seg_cont;
+
 end % function analyzeContinuity
 
 % [EOF]

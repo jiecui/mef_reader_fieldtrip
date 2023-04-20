@@ -156,6 +156,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     methods
         channel = read_channel_metadata(this, varargin) % read channel metadata
         seg_cont = analyzeContinuity(this, varargin) % analyze continuity of data sampling
+        [x, t] = importSignal(this, varargin) % input MEF 3.0 time series channel
         pw = processPassword(this, varargin) % process MEF 3.0 password
     end % methods
 

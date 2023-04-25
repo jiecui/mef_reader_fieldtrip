@@ -67,7 +67,38 @@ function [x, t] = importSignal(this, options)
     % main
     % ======================================================================
     % parameters
-    start_end= options.start_end;
+    % ----------
+    start_end = options.start_end;
+    st_unit = options.st_unit;
+    filepath = options.filepath;
+    filename = options.filename;
+    l1_pw = options.level_1_pw;
+    l2_pw = options.level_2_pw;
+    al = options.access_level;
+
+    % password
+    % --------
+    if isnan(l1_pw)
+        l1_pw = this.Level1Password;
+    else
+        this.Level1Password = l1_pw;
+    end % if
+
+    if isnan(l2_pw)
+        l2_pw = this.Level2Password;
+    else
+        this.Level2Password = l2_pw;
+    end % if
+
+    if isnan(al)
+        al = this.AccessLevel;
+    else
+        this.AccessLevel = al;
+    end % if
+
+    pw = this.processPassword('Level1Password', l1_pw, ...
+        'Level2Password', l2_pw, ...
+        'AccessLevel', al);
 
 end % function importSignal
 

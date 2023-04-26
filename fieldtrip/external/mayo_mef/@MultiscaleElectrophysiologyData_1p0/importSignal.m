@@ -100,6 +100,29 @@ function [x, t] = importSignal(this, options)
         'Level2Password', l2_pw, ...
         'AccessLevel', al);
 
+    % get the channel metadata if both filepath and filename are provided
+    % -------------------------------------------------------------------
+    if isempty(filepath)
+        filepath = this.FilePath;
+    else
+        this.FilePath = filepath;
+    end % if
+
+    if isempty(filename)
+        filename = this.FileName;
+    else
+        this.FileName = filename;
+    end % if
+
+    wholename = fullfile(filepath, filename);
+
+    if ~isempty(filepath) && ~isempty(filename)
+        this.read_channel_metadata(wholename, pw);
+    end % if
+
+    % start and end time points
+    % -------------------------
+
 end % function importSignal
 
 % [EOF]

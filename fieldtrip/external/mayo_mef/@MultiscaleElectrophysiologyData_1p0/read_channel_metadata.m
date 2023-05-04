@@ -1,4 +1,4 @@
-function chan_meta = read_channel_metadata(this, wholename, password)
+function chan_meta = read_channel_metadata(this, wholename, password, options)
     % MULTISCALEELECTROPHYSIOLOGYDATA_1P0.READ_CHANNEL_METADATA get channel metadata
     %
     % Syntax:
@@ -16,7 +16,7 @@ function chan_meta = read_channel_metadata(this, wholename, password)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Wed 02/15/2023 10:19:06.942 PM
-    % $Revision: 0.2 $  $Date: Thu 04/13/2023 12:11:12.194 AM $
+    % $Revision: 0.3 $  $Date: Thu 05/04/2023 12:28:55.508 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -32,35 +32,24 @@ function chan_meta = read_channel_metadata(this, wholename, password)
         password (1, :) char
     end % positional
 
+    arguments
+        options.ReturnChannels (1, 1) logical = false
+        options.ReturnContigua (1, 1) logical = true
+        options.ReturnRecords (1, 1) logical = true
+    end % optional
+
     % ======================================================================
     % main
     % ======================================================================
-    % get seesion and channel names
-    % -----------------------------
-    [session_name, channel_name] = fileparts(wholename);
-
     % get channel metadata
     % --------------------
-    % get session metadata
-    s = read_MED(session_name, [], [], [], [], password, channel_name, false);
+    return_channels = options.ReturnChannels;
+    return_contigua = options.ReturnContigua;
+    return_records = options.ReturnRecords;
 
-    % get channel metadata
-    chan_meta = struct();
-    chan_meta.records = s.records;
-
-    n_chan = length(s.channels);
-
-    for k = 1:n_chan
-        chan_k = s.channels(k);
-        chan_name_k = chan_k.metadata.channel_name;
-
-        if strcmpi(chan_name_k, channel_name)
-            chan_meta.metadata = chan_k.metadata;
-            chan_meta.contigua = chan_k.contigua;
-            break
-        end % if
-
-    end % for
+    chan_meta = MED_session_stats(wholename, return_channels, ...
+        return_contigua, return_records, password);
+    chan_meta = rmfield(chan_meta, 'channels');
 
     this.ChannelMetadata = chan_meta;
 

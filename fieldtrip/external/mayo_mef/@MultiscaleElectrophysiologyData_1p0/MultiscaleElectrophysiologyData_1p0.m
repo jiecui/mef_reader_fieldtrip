@@ -32,7 +32,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Sun 02/12/2023 10:20:18.872 PM
-    % $Revision: 0.4 $  $Date: Thu 04/14/2023 12:24:02.013 AM $
+    % $Revision: 0.5 $  $Date: Fri 05/05/2023 12:28:44.196 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -144,6 +144,7 @@ classdef MultiscaleElectrophysiologyData_1p0 < MultiscaleElectrophysiologyData
                 this.getSampleTimeInterval();
 
                 % analyze continuity
+                this.analyzeContinuity();
 
             end % if
 

@@ -26,7 +26,7 @@ function seg_cont = analyzeContinuity(this)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Fri 04/14/2023 12:11:12.027 AM
-    % $Revision: 0.1 $  $Date: Fri 04/14/2023 12:11:12.033 AM $
+    % $Revision: 0.2 $  $Date: Fri 05/05/2023 12:44:41.427 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -37,13 +37,13 @@ function seg_cont = analyzeContinuity(this)
     % parse inputs
     % ======================================================================
     arguments
-        this (1, 1) multiscaleElectrophysiologyData_1p0
+        this (1, 1) MultiscaleElectrophysiologyData_1p0
     end % positional
 
     % ======================================================================
     % main
     % ======================================================================
-    meta_data = this.ChannelMetaData;
+    meta_data = this.ChannelMetadata;
 
     % get the continuity table
     % ------------------------

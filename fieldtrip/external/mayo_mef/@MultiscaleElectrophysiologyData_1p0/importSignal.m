@@ -122,6 +122,12 @@ function [x, t] = importSignal(this, options)
 
     % start and end time points
     % -------------------------
+    switch lower(st_unit)
+        case "index"
+            se_index = start_end;
+        otherwise
+            se_index = this.SampleTime2Index(start_end, st_unit);
+    end % switch-case
 
 end % function importSignal
 

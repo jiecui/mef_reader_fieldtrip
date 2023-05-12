@@ -14,9 +14,9 @@ function pw = processPassword(this, password, options)
     %                     .Level1Password
     %                     .Level2Password
     %                     .AccessLevel
-    %   level_1_pw      - [str] (para) password of level 1 (default = '')
-    %   level_2_pw      - [str] (para) password of level 2 (default = '')
-    %   access_level    - [str] (para) data decode level to be used
+    %   Level1Password  - [str] (para) password of level 1 (default = '')
+    %   Level2Password  - [str] (para) password of level 2 (default = '')
+    %   AccessLevel     - [str] (para) data decode level to be used
     %                     (default = 1)
     %
     %
@@ -33,7 +33,7 @@ function pw = processPassword(this, password, options)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Thu 03/02/2023 12:38:04.168 AM
-    % $Revision: 0.2 $  $Date: Thu 03/08/2023 12:38:04.175 AM $
+    % $Revision: 0.3 $  $Date: Fri 05/12/2023 12:20:05.512 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -46,13 +46,13 @@ function pw = processPassword(this, password, options)
     arguments
         this (1, 1) MultiscaleElectrophysiologyData_1p0
         password (1, 1) struct = struct('Level1Password', '', ...
-            'Level2Password', '', 'AccessLevel', 1)
+            'Level2Password', '', 'AccessLevel', [])
     end % positional
 
     arguments
-        options.level_1_pw (1, 1) string = ''
-        options.level_2_pw (1, 1) string = ''
-        options.access_level (1, 1) string = '1'
+        options.Level1Password (1, 1) string = ''
+        options.Level2Password (1, 1) string = ''
+        options.AccessLevel (1, 1) double = 1
     end % optional
 
     % ======================================================================
@@ -60,22 +60,23 @@ function pw = processPassword(this, password, options)
     % ======================================================================
     % get parameters
     % --------------
-    if ~isempty(password)
+    if ~isempty(password.Level1Password) && ~isempty(password.Level2Password) && ...
+            ~isempty(password.AccessLevel)
         level_1_pw = password.Level1Password;
         level_2_pw = password.Level2Password;
         access_level = password.AccessLevel;
     else
-        level_1_pw = options.level_1_pw;
-        level_2_pw = options.level_2_pw;
-        access_level = options.access_level;
+        level_1_pw = options.Level2Password;
+        level_2_pw = options.Level2Password;
+        access_level = options.AccessLevel;
     end % if
 
     % process password
     % ----------------
     switch access_level
-        case '1'
+        case 1
             pw = level_1_pw;
-        case '2'
+        case 2
             pw = level_2_pw;
         otherwise
             error(sprintf('%s:%s:invalidAccessLevel', mfilename('class'), mfilename), ...

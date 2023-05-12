@@ -76,7 +76,7 @@ function [sample_index, sample_yn] = SampleTime2Index(this, sample_time, options
     % -------------------------
     % get start and end time in uUTC
     rto = this.ChannelMetadata.metadata.recording_time_offset;
-    cont_start_end = cont{:, {'start_time', 'end_time'}} + rto; % TODO: in uUTC
+    cont_start_end = cont{:, {'start_time', 'end_time'}} + rto; % in uUTC
 
     % choose continuity segment that in the range of sample indexes
     num_st = numel(sorted_st);

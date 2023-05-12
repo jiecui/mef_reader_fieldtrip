@@ -56,11 +56,11 @@ function [x, t] = importSignal(this, options)
     arguments
         options.start_end (1, 2) double {mustBeNonnegative} = [0, inf]
         options.st_unit (1, 1) string {mustBeMember(options.st_unit, ["Index", "uUTC", "Second", "Minute", "Hour", "Day"])} = "Index"
-        options.filepath (1, 1) string = string.empty(1, 0)
-        options.filename (1, 1) string = string.empty(1, 0)
+        options.filepath (1, :) string = string.empty(1, 0)
+        options.filename (1, :) string = string.empty(1, 0)
         options.level_1_pw (1, 1) string = this.Level1Password
         options.level_2_pw (1, 1) string = this.Level2Password
-        options.access_level (1, 1) string = this.AccessLevel
+        options.access_level (1, 1) double = this.AccessLevel
     end % optional
 
     % ======================================================================
@@ -78,19 +78,19 @@ function [x, t] = importSignal(this, options)
 
     % password
     % --------
-    if isnan(l1_pw)
+    if l1_pw == ""
         l1_pw = this.Level1Password;
     else
         this.Level1Password = l1_pw;
     end % if
 
-    if isnan(l2_pw)
+    if l2_pw == ""
         l2_pw = this.Level2Password;
     else
         this.Level2Password = l2_pw;
     end % if
 
-    if isnan(al)
+    if isnan(al) || isempty(al)
         al = this.AccessLevel;
     else
         this.AccessLevel = al;
@@ -126,7 +126,7 @@ function [x, t] = importSignal(this, options)
         case "index"
             se_index = start_end;
         otherwise
-            se_index = this.SampleTime2Index(start_end, st_unit);
+            se_index = this.SampleTime2Index(start_end, st_unit=st_unit);
     end % switch-case
 
 end % function importSignal

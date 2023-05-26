@@ -23,7 +23,7 @@ function [sample_index, sample_yn] = SampleTime2Index(this, sample_time, options
     % See also SampleIndex2Time.
 
     % Copyright 2019-2023 Richard J. Cui. Created: Sun 05/05/2019 10:29:21.071 PM
-    % $Revision: 0.8 $  $Date: Mon 05/08/2023 11:53:06.851 PM $
+    % $Revision: 0.9 $  $Date: Tue 05/16/2023 12:05:45.218 AM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -74,9 +74,9 @@ function [sample_index, sample_yn] = SampleTime2Index(this, sample_time, options
 
     % within continuous segment
     % -------------------------
-    % get start and end time in uUTC
-    rto = this.ChannelMetadata.metadata.recording_time_offset;
-    cont_start_end = cont{:, {'start_time', 'end_time'}} + rto; % in uUTC
+    % get relative start and end time in uUTC
+    x = cont{:, {'start_time', 'end_time'}}; % in uUTC
+    cont_start_end = x - x(1, 1); % in relative uUTC
 
     % choose continuity segment that in the range of sample indexes
     num_st = numel(sorted_st);

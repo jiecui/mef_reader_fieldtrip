@@ -80,6 +80,7 @@ function [sample_index, sample_yn] = SampleTime2Index(this, sample_time, options
 
     % choose continuity segment that in the range of sample indexes
     num_st = numel(sorted_st);
+    % TODO: need to consider the case when the start and end time are in the discontinuity
     sel_cont_ind = sorted_st(1) <= cont_start_end(:, 2) ...
         & sorted_st(num_st) >= cont_start_end(:, 1);
     sel_cont = cont(sel_cont_ind, :); % select the segment of continuity in the

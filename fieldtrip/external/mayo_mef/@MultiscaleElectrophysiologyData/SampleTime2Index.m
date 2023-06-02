@@ -23,7 +23,7 @@ function [sample_index, sample_yn] = SampleTime2Index(this, sample_time, options
     % See also SampleIndex2Time.
 
     % Copyright 2019-2023 Richard J. Cui. Created: Sun 05/05/2019 10:29:21.071 PM
-    % $Revision: 0.9 $  $Date: Tue 05/16/2023 12:05:45.218 AM $
+    % $Revision: 1.0 $  $Date: Thu 06/01/2023 11:37:35.795 PM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA

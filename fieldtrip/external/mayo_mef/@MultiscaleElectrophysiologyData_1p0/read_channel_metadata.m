@@ -51,6 +51,11 @@ function chan_meta = read_channel_metadata(this, wholename, password, options)
         return_contigua, return_records, password);
     chan_meta = rmfield(chan_meta, 'channels');
 
+    % get time-zone 
+    % -------------
+
+    % set properties
+    % --------------
     this.ChannelMetadata = chan_meta;
 
 end % function read_channel_metadata

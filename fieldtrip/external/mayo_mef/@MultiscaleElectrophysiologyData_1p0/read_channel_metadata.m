@@ -16,7 +16,7 @@ function chan_meta = read_channel_metadata(this, wholename, password, options)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Wed 02/15/2023 10:19:06.942 PM
-    % $Revision: 0.3 $  $Date: Thu 05/04/2023 12:28:55.508 AM $
+    % $Revision: 0.4 $  $Date: Thu 06/22/2023  1:36:14.064 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -51,8 +51,18 @@ function chan_meta = read_channel_metadata(this, wholename, password, options)
         return_contigua, return_records, password);
     chan_meta = rmfield(chan_meta, 'channels');
 
-    % get time-zone 
-    % -------------
+    % get UTC offset
+    % --------------
+    s = chan_meta.metadata.start_time_string;
+    p = regexp(s, '(?<=UTC\s)[+-]?\d*\.\d+\>', 'match');
+
+    if isempty(p)
+        x = '0';
+    else
+        x = p{1};
+    end
+
+    chan_meta.metadata.UTC_offset = str2double(x);
 
     % set properties
     % --------------

@@ -58,6 +58,7 @@ function chan_meta = read_channel_metadata(this, wholename, password, options)
 
     if isempty(p)
         x = '0';
+        cprintf([1 .5 0], 'Warning: UTC offset not found. Set to 0.\n');
     else
         x = p{1};
     end

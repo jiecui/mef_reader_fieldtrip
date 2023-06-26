@@ -51,6 +51,11 @@ function seg_cont = analyzeContinuity(this)
     seg_cont.start_time_string = string(seg_cont.start_time_string);
     seg_cont.end_time_string = string(seg_cont.end_time_string);
 
+    % TODO: correct end_time for an approimate uniform sampling rate of each segment
+    % ------------------------------------------------------------------------------
+    % seg_cont.end_time = seg_cont.start_time + ...
+    %     (seg_cont.end_index - seg_cont.start_index) * 1e6 / meta_data.sampling_rate;
+
     % update
     % -------
     this.Continuity = seg_cont;

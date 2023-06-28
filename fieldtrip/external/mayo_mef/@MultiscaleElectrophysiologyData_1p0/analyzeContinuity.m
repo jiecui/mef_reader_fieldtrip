@@ -26,7 +26,7 @@ function seg_cont = analyzeContinuity(this)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Fri 04/14/2023 12:11:12.027 AM
-    % $Revision: 0.2 $  $Date: Fri 05/05/2023 12:44:41.427 AM $
+    % $Revision: 0.3 $  $Date: Wed 06/28/2023  1:04:09.408 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -44,6 +44,7 @@ function seg_cont = analyzeContinuity(this)
     % main
     % ======================================================================
     meta_data = this.ChannelMetadata;
+    fs = this.ChanSamplingFreq;
 
     % get the continuity table
     % ------------------------
@@ -51,14 +52,17 @@ function seg_cont = analyzeContinuity(this)
     seg_cont.start_time_string = string(seg_cont.start_time_string);
     seg_cont.end_time_string = string(seg_cont.end_time_string);
 
-    % TODO: correct end_time for an approimate uniform sampling rate of each segment
-    % ------------------------------------------------------------------------------
-    % seg_cont.end_time = seg_cont.start_time + ...
-    %     (seg_cont.end_index - seg_cont.start_index) * 1e6 / meta_data.sampling_rate;
+    % correct end_time for an approimate uniform sampling rate of each segment
+    % ------------------------------------------------------------------------
+    seg_cont_corr = seg_cont;
+    seg_cont_corr.end_time = seg_cont_corr.start_time + ...
+        (seg_cont_corr.end_index - seg_cont_corr.start_index) * 1e6 / fs;
+    seg_cont_corr(:, ["start_time_string", "end_time_string"]) = [];
 
     % update
     % -------
     this.Continuity = seg_cont;
+    this.ContinuityCorrected = seg_cont_corr;
 
 end % function analyzeContinuity
 

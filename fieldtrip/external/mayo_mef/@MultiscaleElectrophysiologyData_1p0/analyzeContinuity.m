@@ -1,4 +1,4 @@
-function seg_cont = analyzeContinuity(this)
+function seg_cont_corr = analyzeContinuity(this)
     % MULTISCALEELECTROPHYSIOLOGYDATA_1P0.ANALYZECONTINUITY (summary)
     %
     % Syntax:
@@ -26,7 +26,7 @@ function seg_cont = analyzeContinuity(this)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Fri 04/14/2023 12:11:12.027 AM
-    % $Revision: 0.3 $  $Date: Wed 06/28/2023  1:04:09.408 AM $
+    % $Revision: 0.4 $  $Date: Sun 07/02/2023  1:53:16.012 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA

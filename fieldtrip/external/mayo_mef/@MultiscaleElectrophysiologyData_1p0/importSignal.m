@@ -39,7 +39,7 @@ function [x, t] = importSignal(this, options)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Thu 04/20/2023 12:24:33.818 AM
-    % $Revision: 0.1 $  $Date: Thu 04/20/2023 12:24:33.825 AM $
+    % $Revision: 0.2 $  $Date: Sun 07/02/2023  1:53:16.012 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -126,8 +126,10 @@ function [x, t] = importSignal(this, options)
         case "index"
             se_index = start_end;
         otherwise
-            se_index = this.SampleTime2Index(start_end, st_unit=st_unit);
+            se_index = this.SampleTime2Index(start_end, st_unit=st_unit); % TODO
     end % switch-case
+
+    % TODO: read the signal
 
 end % function importSignal
 

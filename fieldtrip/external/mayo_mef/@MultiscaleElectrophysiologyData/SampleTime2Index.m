@@ -23,7 +23,7 @@ function [sample_index, sample_yn] = SampleTime2Index(this, sample_time, options
     % See also SampleIndex2Time.
 
     % Copyright 2019-2023 Richard J. Cui. Created: Sun 05/05/2019 10:29:21.071 PM
-    % $Revision: 1.1 $  $Date: Sun 07/02/2023  1:49:06.868 PM $
+    % $Revision: 1.2 $  $Date: Wed 07/05/2023 12:36:03.449 AM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -39,7 +39,7 @@ function [sample_index, sample_yn] = SampleTime2Index(this, sample_time, options
     end % positional
 
     arguments
-        options.st_unit = 'uUTC'
+        options.st_unit (1, 1) string {mustBeMember(options.st_unit, ["Index", "uUTC", "Second", "Minute", "Hour", "Day"])} = "Index"
     end %
 
     st_unit = options.st_unit;
@@ -116,6 +116,8 @@ function [s_index, s_yn] = inContLoopCont(fs, cont_se, cont, sorted_st)
     % get the sample index
     % --------------------
     s_index = round((sorted_st - cont_se(:, 1)) .* fs / 1e6 + double(cont.start_index));
+    % set nan
+    s_index(~s_yn) = nan;
 
 end % function
 

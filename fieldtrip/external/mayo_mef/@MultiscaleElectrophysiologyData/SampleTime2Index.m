@@ -23,7 +23,7 @@ function [sample_index, sample_yn] = SampleTime2Index(this, sample_time, options
     % See also SampleIndex2Time.
 
     % Copyright 2019-2023 Richard J. Cui. Created: Sun 05/05/2019 10:29:21.071 PM
-    % $Revision: 1.2 $  $Date: Wed 07/05/2023 12:36:03.449 AM $
+    % $Revision: 1.3 $  $Date: Mon 07/17/2023 12:14:08.339 AM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -109,16 +109,25 @@ function [s_index, s_yn] = inContLoopCont(fs, cont_se, cont, sorted_st)
         sorted_st (:, 1) double % sorted sample time in uUTC
     end % positional
 
-    % check if the sample time is in the continuity segment
-    % -----------------------------------------------------
-    s_yn = sorted_st >= cont_se(:, 1) & sorted_st <= cont_se(:, 2);
+    % check sample time one by one
+    % ----------------------------
+    num_st = numel(sorted_st); % number of sample time
+    s_index = zeros(num_st, 1); % sample index
+    s_yn = false(num_st, 1); % sample yn
 
-    % get the sample index
-    % --------------------
-    s_index = round((sorted_st - cont_se(:, 1)) .* fs / 1e6 + double(cont.start_index));
+    for k = 1:num_st
+        st_k = sorted_st(k);
+
+        % * check if the sample time is in the continuity segment
+        s_yn(k) = st_k >= cont_se(:, 1) & st_k <= cont_se(:, 2);
+
+        % * get the sample index
+        s_index(k) = round((st_k - cont_se(:, 1)) .* fs / 1e6 + double(cont.start_index));
+    end % for
+
     % set nan
+    % -------
     s_index(~s_yn) = nan;
-
 end % function
 
 % [EOF]

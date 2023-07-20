@@ -120,16 +120,49 @@ function [x, t] = importSignal(this, options)
         this.read_channel_metadata(wholename, pw);
     end % if
 
+    ch_meta = this.ChannelMetadata.metadata;
+
     % start and end time points
     % -------------------------
     switch lower(st_unit)
         case "index"
             se_index = start_end;
         otherwise
-            se_index = this.SampleTime2Index(start_end, st_unit=st_unit); 
+            se_index = this.SampleTime2Index(start_end, st_unit = st_unit);
     end % switch-case
 
-    % TODO: read the signal
+    start_ind = ch_meta.absolute_start_sample_number;
+    end_ind = ch_meta.absolute_end_sample_number;
+
+    if isempty(start_end)
+        se_index = [start_ind, end_ind];
+    end % if
+
+    % check
+    % -----
+    if isnan(se_index(1)) == true || se_indx < start_ind
+        se_index(1) = start_ind;
+        warning('MultiscaleElectrophysiologyData_1p0:ImportSignal:discardSample', ...
+        'Reqested data samples are not valid or before the recording are discarded')
+    end % if
+
+    if isnan(se_index(2)) || se_index(2) > end_ind
+        se_index(2) = end_ind;
+        warning('MultiscaleElectrophysiologyData_1p0:ImportSignal:discardSample', ...
+        'Reqested data samples are not valid or after the recording are discarded')
+    end % if
+
+    % verbose
+    % -------
+    num_samples = diff(start_end) + 1;
+
+    if num_samples > 2 ^ 20
+        verbo = true;
+    else
+        verbo = false;
+    end % if
+
+    % TODO: load the data
 
 end % function importSignal
 

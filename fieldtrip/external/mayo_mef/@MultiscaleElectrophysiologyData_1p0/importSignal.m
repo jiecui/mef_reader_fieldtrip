@@ -162,8 +162,27 @@ function [x, t] = importSignal(this, options)
         verbo = false;
     end % if
 
-    % TODO: load the data
+    % load the data
+    % -------------
+    if verbo
+        [~, thisChannel] = fileparts(wholename);
+        fprintf(['-->Loading ' thisChannel ' ...'])
+        clear thisChannel
+    end % if
+
+    x = this.read_med_ts_data_1p0(wholename, pw, 'samples', se_index(1), se_index(2)); % TODO
+    x = double(x(:)).'; % change to row vector
+    % find the indices corresponding to physically collected data
+    if nargout == 2
+        t = se_index(1):se_index(2);
+    end % if
+
+    if verbo, fprintf('Done!\n'), end % if
 
 end % function importSignal
+
+% ==========================================================================
+% subroutines
+% ==========================================================================
 
 % [EOF]

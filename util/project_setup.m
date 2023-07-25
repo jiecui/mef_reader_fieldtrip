@@ -16,7 +16,7 @@ function varargout = project_setup(proj_root, options)
     % See also .
 
     % 2022 Richard J. Cui. Created: Sun 07/22/2023  4:04:40.660 PM
-    % $Revision: 0.1 $  $Date: Sun 07/22/2023  4:04:40.660 PM $
+    % $Revision: 0.2 $  $Date: Mon 07/24/2023 11:47:50.186 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -47,15 +47,15 @@ function varargout = project_setup(proj_root, options)
     cd(proj_root)
     addpath(genpath('./analysis'))
     addpath(genpath('../proj_util'))
-    % * add fieldtrip
-    cprintf('*blue', 'adding fieldtrip...\n')
-    old_dir = pwd;
+    % % * add fieldtrip
+    % cprintf('*blue', 'adding fieldtrip...\n')
+    % old_dir = pwd;
 
-    ft_home = '../../../../ComputationalToolbox/neurophysiology_signals_analysis/fieldtrip';
-    cd(ft_home)
-    ft_defaults
+    % ft_home = '../../../../ComputationalToolbox/neurophysiology_signals_analysis/fieldtrip';
+    % cd(ft_home)
+    % ft_defaults
 
-    cd(old_dir) % back to project root
+    % cd(old_dir) % back to project root
 
     % * add DHN
     cprintf('*blue', 'adding Dark hourse neuron...\n')

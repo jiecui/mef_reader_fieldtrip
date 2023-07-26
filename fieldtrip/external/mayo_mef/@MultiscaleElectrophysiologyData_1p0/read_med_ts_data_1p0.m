@@ -10,6 +10,7 @@ function data = read_med_ts_data_1p0(this, channel_path, options)
     % Example:
     %
     % Note:
+    %   If the range_type is "time", then the begin and stop are in offset uUTC.
     %
     % References:
     %
@@ -46,6 +47,16 @@ function data = read_med_ts_data_1p0(this, channel_path, options)
     % ======================================================================
     % main
     % ======================================================================
+    start_time = this.ChannelMetadata.metadata.start_time;
+
+    if range_type == "time"
+        % convert the begin and stop to index
+        begin_index = this.SampleTime2Index(begin-start_time, st_unit = "uUTC");
+        stop_index = this.SampleTime2Index(stop-start_time, st_unit = "uUTC");
+    end % if
+
+    sess = read_MED(channel_path, [], [], begin_index, stop_index, pw);
+    data = sess.channels.data;
 
 end % function read_med_ts_data_1p0
 

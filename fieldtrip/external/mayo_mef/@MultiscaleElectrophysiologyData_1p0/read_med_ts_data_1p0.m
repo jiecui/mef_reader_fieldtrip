@@ -34,7 +34,7 @@ function data = read_med_ts_data_1p0(this, channel_path, options)
 
     arguments
         options.Password (1, 1) string = "" % the password to the file
-        options.range_type (1, 1) string {mustBeMember(options.range_type, ["time", "index"])} = "index" % the range type
+        options.range_type (1, 1) string {mustBeMember(options.range_type, ["time", "samples"])} = "samples" % the range type
         options.begin (1, 1) double
         options.stop (1, 1) double
     end % optional

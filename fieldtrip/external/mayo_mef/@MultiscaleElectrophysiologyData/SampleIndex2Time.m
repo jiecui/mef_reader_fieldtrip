@@ -41,6 +41,11 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, sample_index, options
     % ======================================================================
     % main
     % ======================================================================
+    % set parameters
+    % --------------
+    sample_time=zeros(size(sample_index));
+    sample_yn = false(size(sample_index));
+
 
 end % function SampleIndex2Time
 

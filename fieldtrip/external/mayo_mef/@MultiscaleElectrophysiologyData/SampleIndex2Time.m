@@ -1,5 +1,6 @@
 function [sample_time, sample_yn] = SampleIndex2Time(this, sample_index, options)
-    % MULTISCALEELECTROPHYSILOGYDATA.SAMPLEINDEX2TIME convert sample index to sample time
+    % MULTISCALEELECTROPHYSILOGYDATA.SAMPLEINDEX2TIME convert sample index
+    % to sample time
     %
     % Syntax:
     %
@@ -10,7 +11,11 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, sample_index, options
     % Example:
     %
     % Note:
-    %
+    % 
+    %   The output sample time is in microsecond (uutc) by default. It is
+    % offset uUTC time. To get the true uUTC time, add the offset time
+    % (recording_time_offset) to the output.
+    % 
     % References:
     %
     % See also .

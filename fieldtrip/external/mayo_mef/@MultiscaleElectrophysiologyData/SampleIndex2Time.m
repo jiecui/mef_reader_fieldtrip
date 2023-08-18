@@ -32,7 +32,7 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, sample_index, options
     % parse inputs
     % ======================================================================
     arguments
-        this (1, 1) MultiScaleElectrophysiologyData
+        this (1, 1) MultiscaleElectrophysiologyData
         sample_index (:, 1) double
     end % positional
 

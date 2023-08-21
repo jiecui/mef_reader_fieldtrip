@@ -11,17 +11,17 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, sample_index, options
     % Example:
     %
     % Note:
-    % 
-    %   The output sample time is in microsecond (uutc) by default. It is
-    % offset uUTC time. To get the true uUTC time, add the offset time
-    % (recording_time_offset) to the output.
-    % 
+    %
+    %   The output sample time is in microsecond (uutc) by default. It can
+    % be offset uUTC or true uUTC time. To get the true uUTC time, add the
+    % offset time (recording_time_offset) to the offset uUTC.
+    %
     % References:
     %
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 08/01/2023 11:35:13.940 PM
-    % $Revision: 0.2 $  $Date: Sat 08/12/2023 12:08:22.300 AM $
+    % $Revision: 0.3 $  $Date: Mon 08/21/2023 12:33:26.391 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -39,9 +39,13 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, sample_index, options
     arguments
         options.st_unit (1, :) char ...
             {mustBeMember(options.st_unit, {'uutc', 'msec', 'second', 'minute', 'hour', 'day'})} = 'uutc'
+        options.OutputTimeType (1, 1) string ...
+            {mustBeMember(options.OutputTimeType, ["OffsetUutc", "TrueUutc"])} = "TrueUutc"
+
     end % name-value
 
     st_unit = options.st_unit;
+    output_time_type = options.OutputTimeType;
 
     % ======================================================================
     % main
@@ -60,7 +64,13 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, sample_index, options
 
     fs = this.ChanSamplingFreq;
 
-    [sorted_st, sorted_st_yn] = findSampleTime(fs, cont, sorted_si); % TODO
+    [sorted_st, sorted_st_yn] = findSampleTime(fs, cont, sorted_si);
+
+    % convert to true uutc time
+    % -------------------------
+    if output_time_type == "TrueUutc"
+        sorted_st = sorted_st + this.ChannelMetadata.metadata.recording_time_offset;
+    end % if
 
     % convert to desired unit
     % -----------------------

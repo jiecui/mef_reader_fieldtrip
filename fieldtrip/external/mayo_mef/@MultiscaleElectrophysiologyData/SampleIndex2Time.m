@@ -21,7 +21,7 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, sample_index, options
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 08/01/2023 11:35:13.940 PM
-    % $Revision: 0.3 $  $Date: Mon 08/21/2023 12:33:26.391 AM $
+    % $Revision: 0.4 $  $Date: Fri 08/25/2023 12:40:54.910 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -41,8 +41,7 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, sample_index, options
             {mustBeMember(options.st_unit, {'uutc', 'msec', 'second', 'minute', 'hour', 'day'})} = 'uutc'
         options.OutputTimeType (1, 1) string ...
             {mustBeMember(options.OutputTimeType, ["OffsetUutc", "TrueUutc"])} = "TrueUutc"
-
-    end % name-value
+    end % optional
 
     st_unit = options.st_unit;
     output_time_type = options.OutputTimeType;

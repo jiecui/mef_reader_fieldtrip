@@ -39,7 +39,7 @@ function [x, t] = importSignal(this, options)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Thu 04/20/2023 12:24:33.818 AM
-    % $Revision: 0.4 $  $Date: Mon 08/21/2023 12:19:37.118 AM $
+    % $Revision: 0.5 $  $Date: Sun 08/27/2023 10:39:21.231 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -140,9 +140,9 @@ function [x, t] = importSignal(this, options)
 
     % check
     % -----
-    if isnan(se_index(1)) == true || se_indx < start_ind
+    if isnan(se_index(1)) == true || se_index(1) < start_ind
         se_index(1) = start_ind;
-        cprintf([1 .5, 0], 'Warning: MultiscaleElectrophysiologyData_1p0:ImportSignal:discardSample:Reqested data samples are not valid or before the recording are discarded')
+        cprintf([1 .5, 0], 'Warning: MultiscaleElectrophysiologyData_1p0:ImportSignal:discardSample:Reqested data samples are not valid or before the recording are discarded\n')
     end % if
 
     if isnan(se_index(2)) || se_index(2) > end_ind
@@ -172,7 +172,7 @@ function [x, t] = importSignal(this, options)
     x = this.read_med_ts_data_1p0(wholename, 'Password', pw, ...
         'range_type', 'samples', ...
         'begin', se_index(1), ...
-        'stop', se_index(2)); 
+        'stop', se_index(2));
     x = double(x(:)).'; % change to row vector
     % find the indices corresponding to physically collected data
     if nargout == 2

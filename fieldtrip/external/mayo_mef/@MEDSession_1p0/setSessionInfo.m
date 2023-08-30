@@ -49,6 +49,7 @@ function metadata = setSessionInfo(this, sesspath, password, sort_channel)
     this.SessionPath = sesspath; % set session path of MED data
     this.Password = password; % set password of MED data
     this.get_sess_parts(); % get session parts
+    this.get_sessinfo; % get session information
 
 end % function setSessionInfo
 

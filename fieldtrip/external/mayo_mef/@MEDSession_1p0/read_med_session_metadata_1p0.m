@@ -27,7 +27,7 @@ function metadata = read_med_session_metadata_1p0(this, sess_path, password)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/28/2023 12:20:45.413 AM
-    % $Revision: 0.1 $  $Date: Tue 02/28/2023 12:20:45.417 AM $
+    % $Revision: 0.1 $  $Date: Wed 08/30/2023  1:18:23.399 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -38,7 +38,7 @@ function metadata = read_med_session_metadata_1p0(this, sess_path, password)
     % parse inputs
     % ======================================================================
     arguments
-        this (1, 1) MEFSession_1p0
+        this (1, 1) MEDSession_1p0
         sess_path (1, 1) string = this.SessionPath
         password (1, 1) struct = this.Password
     end % positional
@@ -46,7 +46,20 @@ function metadata = read_med_session_metadata_1p0(this, sess_path, password)
     % ======================================================================
     % main
     % ======================================================================
+    % get session info
+    % ----------------
     pw = this.processPassword(password);
+
+    return_channels = true;
+    return_contigua = true;
+    return_records = true;
+
+    sess_info = MED_session_stats(sess_path, return_channels, return_contigua, ...
+        return_records, pw);
+
+    % get metadata
+    % ------------
+    % TODO
 
 end % function read_med_session_metadata_1p0
 

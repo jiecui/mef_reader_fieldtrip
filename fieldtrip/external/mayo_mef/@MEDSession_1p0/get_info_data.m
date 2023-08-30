@@ -37,7 +37,7 @@ function [sess_info, unit] = get_info_data(this)
     % main
     % =========================================================================
     var_names = {'ChannelName', 'SamplingFreq', 'Begin', 'Stop', 'Samples', ...
-                 'IndexEntry', 'DiscountinuityEntry', 'SubjectEncryption', ...
+                     'IndexEntry', 'DiscountinuityEntry', 'SubjectEncryption', ...
                      'SessionEncryption', 'DataEncryption', 'Version', 'Institution', ...
                      'SubjectID', 'AcquisitionSystem', 'CompressionAlgorithm', 'Continuity'};
     var_types = {'string', 'double', 'double', 'double', 'double', 'double', ...
@@ -49,10 +49,13 @@ function [sess_info, unit] = get_info_data(this)
     metadata = this.MetaData;
 
     if isempty(metadata) == true % no metadata
-        metadata = this.read_med_session_metadata_1p0(); % TODO
+        metadata = this.read_med_session_metadata_1p0();
         this.MetaData = metadata;
     end % if
 
+    % get session info
+    % ----------------
+    % TODO
 end % function get_info_data
 
 % [EOF]

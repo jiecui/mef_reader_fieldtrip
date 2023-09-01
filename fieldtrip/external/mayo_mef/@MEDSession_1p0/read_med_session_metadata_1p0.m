@@ -27,7 +27,7 @@ function metadata = read_med_session_metadata_1p0(this, sess_path, password)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/28/2023 12:20:45.413 AM
-    % $Revision: 0.1 $  $Date: Wed 08/30/2023  1:18:23.399 AM $
+    % $Revision: 0.1 $  $Date: Thu 08/31/2023 11:46:14.616 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -59,7 +59,18 @@ function metadata = read_med_session_metadata_1p0(this, sess_path, password)
 
     % get metadata
     % ------------
-    % TODO
+    % get channel names
+    channels = sess_info.channels;
+    num_channels = length(channels);
+    chan_names = strings(1, num_channels);
+
+    for k = 1:num_channels
+        chan_names(k) = channels(k).metadata.channel_name;
+    end % for k
+
+    % metadata
+    metadata = sess_info.metadata;
+    metadata.channel_name = chan_names;
 
 end % function read_med_session_metadata_1p0
 

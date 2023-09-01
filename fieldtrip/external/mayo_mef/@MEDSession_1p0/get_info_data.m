@@ -55,7 +55,18 @@ function [sess_info, unit] = get_info_data(this)
 
     % get session info
     % ----------------
-    % TODO
+    chan_names = metadata.channel_name;
+    num_chan = length(chan_names);
+
+    if num_chan < 1 % no time series channel
+        sess_info = table;
+        unit = '';
+    else % if
+        unit = 'uUTC';
+        sz = [num_chan, numel(var_names)];
+        % TODO
+    end % if
+
 end % function get_info_data
 
 % [EOF]

@@ -5,7 +5,7 @@ function [sess_info, unit] = get_info_data(this)
     %   [sessionifo, unit] = get_info_data(this)
     %
     % Input(s):
-    %   sess_info       - [table] N x 14 tabel: 'ChannelName', 'SamplingFreq',
+    %   sess_info       - [table] N x 16 tabel: 'ChannelName', 'SamplingFreq',
     %                     'Begin', 'Stop', 'Samples' 'IndexEntry',
     %                     'DiscountinuityEntry', 'SubjectEncryption',
     %                     'SessionEncryption', 'DataEncryption', 'Version',
@@ -26,12 +26,19 @@ function [sess_info, unit] = get_info_data(this)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/21/2023 11:27:28.805 PM
-    % $Revision: 0.1 $  $Date: Tue 02/21/2023 11:27:28.806 PM $
+    % $Revision: 0.1 $  $Date: Wed 09/06/2023 12:02:05.569 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
     %
     % Email: richard.cui@utoronto.ca
+
+    % ======================================================================
+    % parse inputs
+    % ======================================================================
+    arguments
+        this (1, 1) MEDSession_1p0
+    end % positional
 
     % =========================================================================
     % main
@@ -63,7 +70,21 @@ function [sess_info, unit] = get_info_data(this)
         unit = '';
     else % if
         unit = 'uUTC';
-        sz = [num_chan, numel(var_names)];
+        sz = [num_chan, numel(var_names)]; % size of the table of session info
+        fp = this.SessionPath; % session path of channels
+        pw = this.processPassword(this.Password); % password
+        sess_info = table('size', sz, 'VariableTypes', var_types, ...
+            'VariableNames', var_names);
+
+        for k = 1:num_chan
+            chan_name_k = chan_names(k);
+            fn_k = chan_name_k + ".ticd";
+            info_k = MED_session_stats(fullfile(fp, fn_k), true, true, true, pw); % get info of channel 
+
+            % assign values
+            sess_info.ChannelName(k) = chan_name_k;
+        end % for
+
         % TODO
     end % if
 

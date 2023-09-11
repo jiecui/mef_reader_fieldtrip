@@ -26,7 +26,7 @@ function [sess_info, unit] = get_info_data(this)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/21/2023 11:27:28.805 PM
-    % $Revision: 0.1 $  $Date: Wed 09/06/2023 12:02:05.569 AM $
+    % $Revision: 0.1 $  $Date: Sun 09/10/2023 10:04:58.182 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -72,20 +72,46 @@ function [sess_info, unit] = get_info_data(this)
         unit = 'uUTC';
         sz = [num_chan, numel(var_names)]; % size of the table of session info
         fp = this.SessionPath; % session path of channels
-        pw = this.processPassword(this.Password); % password
         sess_info = table('size', sz, 'VariableTypes', var_types, ...
             'VariableNames', var_names);
 
         for k = 1:num_chan
             chan_name_k = chan_names(k);
             fn_k = chan_name_k + ".ticd";
-            info_k = MED_session_stats(fullfile(fp, fn_k), true, true, true, pw); % get info of channel 
+            ch_k = MultiscaleElectrophysiologyData_1p0(fp, fn_k, ...
+                'Level1Password', this.Password.Level1Password, ...
+                'Level2Password', this.Password.Level2Password, ...
+                'AccessLevel', this.Password.AccessLevel);
+            info_k = ch_k.ChannelMetadata.metadata;
+            seg_cont_k = ch_k.analyzeContinuity; % continuity table of the channel
 
             % assign values
             sess_info.ChannelName(k) = chan_name_k;
+            sess_info.SamplingFreq(k) = info_k.sampling_frequency;
+            sess_info.Begin(k) = info_k.start_time;
+            sess_info.Stop(k) = info_k.end_time;
+            sess_info.Samples(k) = info_k.session_start_time;
+            % number of data blocks in each channel
+            sess_info.IndexEntry(k) = nan;
+            sess_info.DiscountinuityEntry(k) = height(seg_cont_k);
+
+            % TODO: NA in MED 1.0
+            sess_info.SubjectEncryption(k) = false;
+            sess_info.SessionEncryption(k) = false;
+            sess_info.DataEncryption(k) = false;
+
+            sess_info.Version(k) = this.MEDVersion;
+            sess_info.Institution(k) = info_k.recording_institution;
+            sess_info.SubjectID(k) = info_k.subject_ID;
+
+            % TODO: NA in MEF 3.0
+            sess_info.AcquisitionSystem(k) = info_k.equipment_description;
+            sess_info.CompressionAlgorithm(k) = 'not available';
+
+            % continuity table
+            sess_info.Continuity{k} = seg_cont_k;
         end % for
 
-        % TODO
     end % if
 
 end % function get_info_data

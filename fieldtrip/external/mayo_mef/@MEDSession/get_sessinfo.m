@@ -44,7 +44,7 @@ function varargout = get_sessinfo(this)
     % table of channel info
     % ---------------------
     [sess_info, unit] = this.get_info_data;
-
+    % TODO
 end % function get_sessinfo
 
 % [EOF]

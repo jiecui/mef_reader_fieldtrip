@@ -26,7 +26,7 @@ function metadata = setSessionInfo(this, sesspath, password, sort_channel)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/14/2023 11:36:09.573 PM
-    % $Revision: 0.1 $  $Date: Tue 02/14/2023 11:36:09.587 PM $
+    % $Revision: 0.1 $  $Date: Mon 09/11/2023 11:40:09.783 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -50,6 +50,11 @@ function metadata = setSessionInfo(this, sesspath, password, sort_channel)
     this.Password = password; % set password of MED data
     this.get_sess_parts(); % get session parts
     this.get_sessinfo; % get session information
+
+    % sorting channels
+    % ----------------
+    metadata = this.MetaData;
+    % TODO
 
 end % function setSessionInfo
 

@@ -11,7 +11,7 @@ classdef MEDSession < handle
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/21/2023 12:21:48.365 AM
-    % $Revision: 0.2 $  $Date: Sun 02/26/2023 11:18:14.135 PM $
+    % $Revision: 0.3 $  $Date: Mon 09/11/2023 10:30:51.387 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -35,6 +35,19 @@ classdef MEDSession < handle
         SessionPath % session directory
         Password % password structure of the session
         ChannelName % channel names
+        SamplingFrequency % in Hz
+        Samples % number of samples
+        DataBlocks % number of data blocks
+        TimeGaps % number of discountinuity time gaps
+        BeginStop % Begin and stop indexes of entire signal
+        Unit % unit of BeginStop
+        Institution % name of the institute
+        SubjectID % identification of the subject
+        AcquisitionSystem % name of the system to record the session
+        CompressionAlgorithm % name of compression algorithm
+        SessionInformation % table of session information (see get_sessinfo.m)
+        SessionContinuity % [table] data segments of conituous sampling (see
+        % analyzeContinuity.m for the detail)
     end % properties
 
     % =====================================================================

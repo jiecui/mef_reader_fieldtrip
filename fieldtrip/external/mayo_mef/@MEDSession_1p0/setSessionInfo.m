@@ -26,7 +26,7 @@ function metadata = setSessionInfo(this, sesspath, password, sort_channel)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/14/2023 11:36:09.573 PM
-    % $Revision: 0.1 $  $Date: Mon 09/11/2023 11:40:09.783 PM $
+    % $Revision: 0.1 $  $Date: Tue 09/12/2023 11:03:56.620 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -40,7 +40,7 @@ function metadata = setSessionInfo(this, sesspath, password, sort_channel)
         this (1, 1) MEDSession_1p0
         sesspath (1, :) char
         password (1, 1) struct
-        sort_channel (1, :) char = 'alphabet'
+        sort_channel (1, :) logical = false
     end % positional
 
     % ======================================================================
@@ -54,8 +54,15 @@ function metadata = setSessionInfo(this, sesspath, password, sort_channel)
     % sorting channels
     % ----------------
     metadata = this.MetaData;
-    % TODO
+    ch_names = metadata.channel_name;
 
+    if sort_channel == true
+        ch_names = sort(ch_names);
+        metadata.ChannelName = ch_names;
+    end % if
+
+    this.ChannelName = ch_names;
+    this.MetaData = metadata;
 end % function setSessionInfo
 
 % [EOF]

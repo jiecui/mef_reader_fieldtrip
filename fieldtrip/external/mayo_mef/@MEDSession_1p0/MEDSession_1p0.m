@@ -26,7 +26,7 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
     % See also get_sessinfo.
 
     % Copyright 2023 Richard J. Cui. Created: Sun 02/12/2023  9:10:13.351 PM
-    % $Revision: 0.2 $  $Date: Sun 02/26/2023 11:18:14.135 PM $
+    % $Revision: 0.3 $  $Date: Tue 09/12/2023 11:15:19.356 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -59,7 +59,7 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
                 filename (1, :) char
                 password (1, 1) struct = struct('Level1Password', '', 'Level2Password', '', ...
                     'AccessLevel', 1) % example_data password =='L1_password' or 'L2_password'
-                sortchannel (1, 1) string = "alphabet"
+                sortchannel (1, 1) logical = false
             end % positional
 
             % operations during construction

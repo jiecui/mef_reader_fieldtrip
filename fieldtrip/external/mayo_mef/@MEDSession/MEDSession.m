@@ -65,8 +65,9 @@ classdef MEDSession < handle
     % other methods
     % -------------
     methods
-        varargout = get_sessinfo(this) % get sess info from data
-        [path_to_sess, sess_name, sess_ext] = get_sess_parts(this, varargin) % get the parts of session path
+        varargout = abs2relativeTimePoint(this, varargin) % absolute to relative time points
+        varargout = get_sessinfo(this, varargin) % get sess info from data
+        varargout = get_sess_parts(this, varargin) % get the parts of session path
     end % methods
 
 end % classdef

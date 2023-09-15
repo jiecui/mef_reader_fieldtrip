@@ -26,7 +26,7 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
     % See also get_sessinfo.
 
     % Copyright 2023 Richard J. Cui. Created: Sun 02/12/2023  9:10:13.351 PM
-    % $Revision: 0.3 $  $Date: Tue 09/12/2023 11:15:19.356 PM $
+    % $Revision: 0.4 $  $Date: Thu 09/14/2023 11:28:32.925 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -101,9 +101,11 @@ classdef MEDSession_1p0 < MEDSession & MultiscaleElectrophysiologyData_1p0
     % other methods
     % -------------
     methods
-        [sesspath, channames] = findSessPath(this, filename) % find session path and channel name
-        metadata = setSessionInfo(this, varargin) % set session information
-        metadata = read_med_session_metadata_1p0(this, varargin) % get session metadata of MED 1.0
+        varargout = get_info_data(this, varargin) % get session info data of MED 1.0
+        varargout = findSessPath(this, varargin) % find session path and channel name
+        varargout = import_sess(this, varargin) % import session of MED 1.0 data
+        varargout = read_med_session_metadata_1p0(this, varargin) % get session metadata of MED 1.0
+        varargout = setSessionInfo(this, varargin) % set session information
     end % methods
 
 end % classdef

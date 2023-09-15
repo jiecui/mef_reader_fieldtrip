@@ -11,7 +11,7 @@ classdef MEDSession < handle
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/21/2023 12:21:48.365 AM
-    % $Revision: 0.3 $  $Date: Mon 09/11/2023 10:30:51.387 PM $
+    % $Revision: 0.4 $  $Date: Mon 09/11/2023 10:30:51.387 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -68,6 +68,8 @@ classdef MEDSession < handle
         varargout = abs2relativeTimePoint(this, varargin) % absolute to relative time points
         varargout = get_sessinfo(this, varargin) % get sess info from data
         varargout = get_sess_parts(this, varargin) % get the parts of session path
+        varargout = getSessionRecordOffset(this, varargin) % get offset time of recording in specified unit
+        varargout = importSession(this, varargin) % import a session
     end % methods
 
 end % classdef

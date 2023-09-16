@@ -36,7 +36,7 @@ function [X, t] = importSession(this, start_end, se_unit, sess_path, options)
     % See also importSignal.
 
     % Copyright 2020-2023 Richard J. Cui. Created: Wed 01/08/2020 11:16:21.943 PM
-    % $Revision: 0.2 $  $Date: Thu 09/14/2023 11:28:32.925 PM $
+    % $Revision: 0.2 $  $Date: Sat 09/16/2023 01:05:37.502 AM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -122,7 +122,7 @@ function [X, t] = importSession(this, start_end, se_unit, sess_path, options)
     % input session
     % ======================================================================
     begin_stop = this.relative2absTimePoint(start_end, se_unit); % to absolute time points
-    [X, t] = this.import_sess(begin_stop, se_unit, sel_chan, pw); % TODO
+    [X, t] = this.import_sess(begin_stop, se_unit, sel_chan, pw); 
 
 end % function
 

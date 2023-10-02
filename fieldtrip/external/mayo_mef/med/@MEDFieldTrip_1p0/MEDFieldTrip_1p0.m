@@ -10,28 +10,38 @@ classdef MEDFieldTrip_1p0 < MEDSession_1p0 & MEDFieldTrip
     % Input(s):
     %   filename    - [char] (opt) session path or channel path or dataset name
     %   password    - [char] (opt) password (default: L2_password)
+    %                 .Level1Password
+    %                 .Level2Password
+    %                 .AccessLevel
     %   sortchannel - [char] (para) sort channel according to either 'alphabet' of
     %                 the channel names or 'number' of the acquisiton
     %                 channel number (default = 'alphabet')
+    %
+    % Output(s):
+    %   this        - [obj] MEDFieldTrip_1p0 object
+    %
+    % Note:
+    %
+    % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Sat 02/11/2023 10:24:32.031 PM
-    % $Revision: 0.1 $  $Date: Sat 02/11/2023 10:24:32.043 PM $
+    % $Revision: 0.1 $  $Date: Sun 10/01/2023 11:59:12.575 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
     %
     % Email: richard.cui@utoronto.ca
 
-    % =====================================================================
+    % ======================================================================
     % properties
-    % =====================================================================
+    % ======================================================================
     properties
 
     end % properties
 
-    % =====================================================================
+    % ======================================================================
     % constructor
-    % =====================================================================
+    % ======================================================================
     methods
 
         function this = MEDFieldTrip_1p0(varargin)
@@ -44,8 +54,8 @@ classdef MEDFieldTrip_1p0 < MEDSession_1p0 & MEDFieldTrip
             % operations during construction
             % ------------------------------
             % call super class
-            this@MEDFieldTrip; 
-            this@MEDSession_1p0(varargin{:}); % TODO: this is not working yet
+            this@MEDFieldTrip;
+            this@MEDSession_1p0(varargin{:}); % TODO: debug
 
             % set class properties
             this.FileType = 'dhn_med10';
@@ -53,9 +63,9 @@ classdef MEDFieldTrip_1p0 < MEDSession_1p0 & MEDFieldTrip
 
     end % methods
 
-    % =====================================================================
+    % ======================================================================
     % methods
-    % =====================================================================
+    % ======================================================================
     methods (Static = true)
 
     end %

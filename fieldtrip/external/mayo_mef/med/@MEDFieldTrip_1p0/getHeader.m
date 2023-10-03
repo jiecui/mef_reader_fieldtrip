@@ -2,10 +2,16 @@ function hdr = getHeader(this, channames)
     % MEDFIELDTRIP_1P0.GETHEADER get header information of MED 1.0 session for fieldtrip
     %
     % Syntax:
+    %   hdr = getHeader(this)
+    %   hdr = getHeader(this, channames)
     %
     % Input(s):
+    %   this            - [obj] MEDFieldTrip_1p0 object
+    %   channames       - [string] channel names
     %
     % Output(s):
+    %   hdr             - [struct] structure of header information (from
+    %                     session metadata information)
     %
     % Example:
     %
@@ -23,6 +29,31 @@ function hdr = getHeader(this, channames)
     %
     % Email: richard.cui@utoronto.ca
 
+    % ======================================================================
+    % parse inputs
+    % ======================================================================
+    arguments
+        this (1, 1) MEDFieldTrip_1p0
+        channames (1, :) string = []
+    end % positional
+
+    % ======================================================================
+    % main
+    % ======================================================================
+    % check channel names if provided
+    % -------------------------------
+    if ~isempty(channames)
+        sess_chan = this.ChannelName; % all channels in the session
+
+        if all(ismember(channames, sess_chan)) == false
+            error('MEFFieldTrip_3p0:getHeader:invalidChannel', ...
+            'invalid channel names')
+        end % if
+
+    end % if
+
+    % construct header structure
+    % --------------------------
 end % function getHeader
 
 % [EOF]

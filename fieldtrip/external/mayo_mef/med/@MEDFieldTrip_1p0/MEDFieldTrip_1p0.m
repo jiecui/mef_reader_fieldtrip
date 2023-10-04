@@ -73,7 +73,7 @@ classdef MEDFieldTrip_1p0 < MEDSession_1p0 & MEDFieldTrip
     % other methods
     % -------------
     methods
-        hdr = getHeader(this, channames) % TODO: get header information of MED 1.0 session
+        hdr = getHeader(this, channames) % get header information of MED 1.0 session
         evt = getEvent(this, channames) % TODO: get MED 1.0 events for FieldTrip
         dat = getData(this, varargin) % TODO: read data from MED 1.0 dataset for FieldTrip
     end % methods

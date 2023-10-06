@@ -17,7 +17,7 @@ function record_offset = getSessionRecordOffset(this, unit)
     % Seaa slso .
 
     % Copyright 2020 Richard J. Cui. Created: Wed 09/13/2023 11:45:31.702 PM
-    % $Revision: 0.1 $  $Date: Wed 09/13/2023 11:45:31.702 PM $
+    % $Revision: 0.2 $  $Date: Fri 10/06/2023 12:19:28.864 AM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -36,7 +36,7 @@ function record_offset = getSessionRecordOffset(this, unit)
     % =========================================================================
     % main
     % =========================================================================
-    offset_uutc = this.recording_time_offset; % in uutc
+    offset_uutc = this.MetaData.recording_time_offset; % in uutc
 
     switch unit
         case "index"

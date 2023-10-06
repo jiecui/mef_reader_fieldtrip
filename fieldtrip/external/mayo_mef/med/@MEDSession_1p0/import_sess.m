@@ -32,7 +32,7 @@ function [X, t] = import_sess(this, begin_stop, bs_unit, sel_chan, options)
     % See also importSignal, importSession.
 
     % Copyright 2023 Richard J. Cui. Created: Thu 09/14/2023 11:56:16.600 PM
-    % $Revision: 0.1 $  $Date: Sat 09/16/2023 01:05:37.502 AM $
+    % $Revision: 0.2 $  $Date: Fri 10/06/2023 12:19:28.864 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -46,7 +46,7 @@ function [X, t] = import_sess(this, begin_stop, bs_unit, sel_chan, options)
         this (1, 1) MEDSession_1p0
         begin_stop (1, 2) double
         bs_unit (1, :) char ...
-            {mustBeMember(bs_unit, {'uUTC', 'Index', 'Second', 'Minute', 'Hour', 'Day'})}
+            {mustBeMember(bs_unit, {'uutc', 'index', 'second', 'minute', 'hour', 'day'})}
         sel_chan (1, :) string
     end % positional
 

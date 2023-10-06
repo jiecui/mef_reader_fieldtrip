@@ -39,7 +39,7 @@ function [x, t] = importSignal(this, start_end, st_unit, filepath, filename, opt
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Thu 04/20/2023 12:24:33.818 AM
-    % $Revision: 0.6 $  $Date: Sat 09/16/2023 01:05:37.502 AM $
+    % $Revision: 0.7 $  $Date: Fri 10/06/2023 12:19:28.864 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -52,15 +52,15 @@ function [x, t] = importSignal(this, start_end, st_unit, filepath, filename, opt
     arguments
         this (1, 1) MultiscaleElectrophysiologyData_1p0
         start_end (1, 2) double {mustBeNonnegative} = [0, inf]
-        st_unit (1, 1) string {mustBeMember(st_unit, ["Index", "uUTC", "Second", "Minute", "Hour", "Day"])} = "Index"
+        st_unit (1, 1) string {mustBeMember(st_unit, ["index", "uutc", "second", "minute", "hour", "day"])} = "index"
         filepath (1, :) string = string.empty(1, 0)
         filename (1, :) string = string.empty(1, 0)
     end % positional
 
     arguments
-        options.level_1_pw (1, 1) string = this.Level1Password
-        options.level_2_pw (1, 1) string = this.Level2Password
-        options.access_level (1, 1) double = this.AccessLevel
+        options.Level1Password (1, 1) string = this.Level1Password
+        options.Level2Password (1, 1) string = this.Level2Password
+        options.AccessLevel (1, 1) double = this.AccessLevel
     end % optional
 
     % ======================================================================
@@ -68,9 +68,9 @@ function [x, t] = importSignal(this, start_end, st_unit, filepath, filename, opt
     % ======================================================================
     % parameters
     % ----------
-    l1_pw = options.level_1_pw;
-    l2_pw = options.level_2_pw;
-    al = options.access_level;
+    l1_pw = options.Level1Password;
+    l2_pw = options.Level2Password;
+    al = options.AccessLevel;
 
     % password
     % --------
@@ -161,7 +161,7 @@ function [x, t] = importSignal(this, start_end, st_unit, filepath, filename, opt
     % -------------
     if verbo
         [~, thisChannel] = fileparts(wholename);
-        fprintf(['-->Loading ' thisChannel ' ...'])
+        fprintf("-->Loading "+thisChannel + " ...")
         clear thisChannel
     end % if
 

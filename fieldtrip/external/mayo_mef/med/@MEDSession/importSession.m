@@ -36,7 +36,7 @@ function [X, t] = importSession(this, start_end, se_unit, sess_path, options)
     % See also importSignal.
 
     % Copyright 2020-2023 Richard J. Cui. Created: Wed 01/08/2020 11:16:21.943 PM
-    % $Revision: 0.2 $  $Date: Sat 09/16/2023 01:05:37.502 AM $
+    % $Revision: 0.3 $  $Date: Fri 10/06/2023 12:15:37.649 AM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -50,7 +50,7 @@ function [X, t] = importSession(this, start_end, se_unit, sess_path, options)
         this (1, 1) MEDSession
         start_end double = []
         se_unit char {mustBeMember(se_unit, ...
-                          {'uUTC', 'Index', 'Second', 'Minute', 'Hour', 'Day'})} = 'uUTC'
+                          {'uutc', 'index', 'second', 'minute', 'hour', 'day'})} = 'uutc'
         sess_path char = []
     end % positional
 
@@ -122,7 +122,7 @@ function [X, t] = importSession(this, start_end, se_unit, sess_path, options)
     % input session
     % ======================================================================
     begin_stop = this.relative2absTimePoint(start_end, se_unit); % to absolute time points
-    [X, t] = this.import_sess(begin_stop, se_unit, sel_chan, pw); 
+    [X, t] = this.import_sess(begin_stop, se_unit, sel_chan, Password = pw);
 
 end % function
 

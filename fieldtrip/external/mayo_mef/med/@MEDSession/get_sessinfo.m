@@ -53,7 +53,7 @@ function varargout = get_sessinfo(this)
         si_value = get_sess_info_value(sess_info, unit, false);
     end % if
 
-    % update paras of MEFSession
+    % update paras of MEDSession
     % --------------------------
     this.ChannelName = si_value.channame;
     this.SamplingFrequency = si_value.fs;

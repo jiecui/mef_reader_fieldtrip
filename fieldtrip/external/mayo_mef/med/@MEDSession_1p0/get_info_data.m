@@ -26,7 +26,7 @@ function [sess_info, unit] = get_info_data(this)
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Tue 02/21/2023 11:27:28.805 PM
-    % $Revision: 0.1 $  $Date: Sun 09/10/2023 10:04:58.182 PM $
+    % $Revision: 0.2 $  $Date: Fri 10/06/2023 10:46:53.182 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -69,7 +69,7 @@ function [sess_info, unit] = get_info_data(this)
         sess_info = table;
         unit = '';
     else % if
-        unit = 'uUTC';
+        unit = 'uutc';
         sz = [num_chan, numel(var_names)]; % size of the table of session info
         fp = this.SessionPath; % session path of channels
         sess_info = table('size', sz, 'VariableTypes', var_types, ...
@@ -90,7 +90,8 @@ function [sess_info, unit] = get_info_data(this)
             sess_info.SamplingFreq(k) = info_k.sampling_frequency;
             sess_info.Begin(k) = info_k.start_time;
             sess_info.Stop(k) = info_k.end_time;
-            sess_info.Samples(k) = info_k.session_start_time;
+            sess_info.Samples(k) ...
+                = info_k.absolute_end_sample_number - info_k.absolute_start_sample_number + 1; % number of samples in a segment
             % number of data blocks in each channel
             sess_info.IndexEntry(k) = nan;
             sess_info.DiscountinuityEntry(k) = height(seg_cont_k);

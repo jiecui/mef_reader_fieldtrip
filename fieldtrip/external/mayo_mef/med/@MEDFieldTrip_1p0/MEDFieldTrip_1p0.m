@@ -25,7 +25,7 @@ classdef MEDFieldTrip_1p0 < MEDSession_1p0 & MEDFieldTrip
     % See also .
 
     % Copyright 2023 Richard J. Cui. Created: Sat 02/11/2023 10:24:32.031 PM
-    % $Revision: 0.1 $  $Date: Sun 10/01/2023 11:59:12.575 PM $
+    % $Revision: 0.2 $  $Date: Fri 10/06/2023 10:59:40.603 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -74,8 +74,8 @@ classdef MEDFieldTrip_1p0 < MEDSession_1p0 & MEDFieldTrip
     % -------------
     methods
         hdr = getHeader(this, channames) % get header information of MED 1.0 session
-        evt = getEvent(this, channames) % TODO: get MED 1.0 events for FieldTrip
-        dat = getData(this, varargin) % TODO: read data from MED 1.0 dataset for FieldTrip
+        evt = getEvent(this, channames) % get MED 1.0 events for FieldTrip
+        dat = getData(this, varargin) % read data from MED 1.0 dataset for FieldTrip
     end % methods
 
 end % classdef

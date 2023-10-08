@@ -47,10 +47,10 @@ function varargout = project_setup(proj_root, options)
     cd(proj_root)
     addpath(genpath('./analysis'))
     addpath(genpath('../proj_util'))
-    % % * add fieldtrip
-    fprintf('adding fieldtrip root directory...\n')
-    ft_home = '../../../../ComputationalToolbox/neurophysiology_signals_analysis/fieldtrip';
-    addpath(ft_home)
+    % * add fieldtrip
+    % fprintf('adding fieldtrip root directory...\n')
+    % ft_home = '../../../../ComputationalToolbox/neurophysiology_signals_analysis/fieldtrip';
+    % addpath(ft_home)
     % ft_defaults
 
     % * add DHN

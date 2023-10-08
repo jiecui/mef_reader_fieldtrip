@@ -59,7 +59,7 @@ function dhn_out = read_dhn_med10(filename, password, sortchannel, hdr, begsampl
     % ======================================================================
     % check the consistency of SortChannel
     % ------------------------------------
-    if ~isempty(fieldnames(hdr)) && ~strcmpi(hdr.SortChannel, sortchannel)
+    if ~isempty(fieldnames(hdr)) && hdr.SortChannel ~= sortchannel
         warning('off', 'backtrace')
         warning('dhn_med10:invalidSortChannel', ...
             'SortChannel provided -%s- is not consistent with -%s- in header. use that in header', ...
@@ -72,7 +72,7 @@ function dhn_out = read_dhn_med10(filename, password, sortchannel, hdr, begsampl
     % setup the instance of MEDFieldTrip_1p0
     % -------------------------------------
     med_ft = MEDFieldTrip_1p0(filename, password, sortchannel); % dealing MED 1.0 data for FieldTrip
-    channames = mef_ft.SelectedChannel;
+    channames = med_ft.SelectedChannel;
 
     % get the desired information
     % ---------------------------

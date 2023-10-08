@@ -143,7 +143,7 @@ url = {
   'MATLAB2BESA'                           'see http://www.besa.de/downloads/matlab/ and get the "MATLAB to BESA Export functions"'
   'MATNWB'                                'see https://neurodatawithoutborders.github.io/matnwb/'
   'MATPLOTLIB'                            'see https://nl.mathworks.com/matlabcentral/fileexchange/62729-matplotlib-perceptually-uniform-colormaps'
-  'MAYO_MEF'                              'see https://github.com/jiecui/mef_reader_fieldtrip and https://msel.mayo.edu/codes.html'
+  'MAYO_MEF'                              'see http://darkhorseneuro.com/, https://github.com/jiecui/mef_reader_fieldtrip and https://msel.mayo.edu/codes.html'
   'MEG-CALC'                              'this is a commercial toolbox from Neuromag, see http://www.neuromag.com'
   'MEG-PD'                                'see http://www.kolumbus.fi/kuutela/programs/meg-pd'
   'MENTAT'                                'see http://robertoostenveld.nl, or contact Robert Oostenveld'
@@ -177,6 +177,7 @@ url = {
   'RICOH_MEG_READER'                      'contact Ricoh engineers'
   'SIGNAL'                                'see http://www.mathworks.com/products/signal'
   'SIMBIO'                                'see https://www.mrt.uni-jena.de/simbio/index.php/Main_Page'
+  'SIMNIBS'                               'see http://www.simnibs.org/'
   'SON2'                                  'see http://www.kcl.ac.uk/depsta/biomedical/cfnr/lidierth.html, or contact Malcolm Lidierth'
   'SPECEST'                               'see http://www.fieldtriptoolbox.org'
   'SPIKE'                                 'see http://www.fieldtriptoolbox.org'
@@ -341,6 +342,8 @@ switch toolbox
     dependency = 'elecsfwd';
   case 'SIMBIO'
     dependency = {'calc_stiff_matrix_val', 'sb_transfer'};
+  case 'SIMNIBS'
+    dependency = {'mesh_load_gmsh4', 'mesh_save_gmsh4', 'standard_cond', 'mesh_empty'};
   case 'VGRID'
     dependency = 'vgrid';
   case 'GIFTI'
@@ -429,8 +432,8 @@ switch toolbox
     dependency = {'copnorm' 'mi_gg'};
   case 'XSENS'
     dependency = {'load_mvnx'};
-  case 'MAYO_MEF' % MEF 2.1 and MEF 3.0
-    dependency = {'MEFFieldTrip_2p1', 'MEFFieldTrip_3p0'};
+  case 'MAYO_MEF' % MED 1.0, MEF 2.1 and MEF 3.0
+    dependency = {'MEDFieldTrip_1p0', 'MEFFieldTrip_2p1', 'MEFFieldTrip_3p0'};
   case 'MATNWB'
     dependency = {'nwbRead', 'generateCore'};
   case 'MATPLOTLIB'
@@ -649,7 +652,7 @@ path = strrep(path,'\','/');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function status = hasfunction(funname, toolbox)
 try
-  % call the function without any input arguments, which probably is inapropriate
+  % call the function without any input arguments, which probably is inappropriate
   feval(funname);
   % it might be that the function without any input already works fine
   status = true;

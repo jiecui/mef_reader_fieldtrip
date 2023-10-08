@@ -33,7 +33,7 @@ function dhn_out = read_dhn_med10(filename, password, sortchannel, hdr, begsampl
     % See also FT_FILETYPE, FT_READ_HEADER, FT_READ_EVENT, FT_READ_DATA.
 
     % Copyright 2023 Richard J. Cui. Created: Sat 02/11/2023  5:47:28.254 PM
-    % $Revision: 0.1 $  $Date: Sat 02/11/2023  5:47:28.262 PM $
+    % $Revision: 0.2 $  $Date: Sun 10/08/2023 12:04:45.093 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -80,7 +80,6 @@ function dhn_out = read_dhn_med10(filename, password, sortchannel, hdr, begsampl
 
     % setup the instance of MEDFieldTrip_1p0
     % -------------------------------------
-    % TODO: MEDFieldTrip_1p0
     med_ft = MEDFieldTrip_1p0(filename, password, 'SortChannel', sortchannel); % dealing MED 1.0 data for FieldTrip
     channames = mef_ft.SelectedChannel;
 

@@ -16,7 +16,7 @@ function varargout = project_setup(proj_root, options)
     % See also .
 
     % 2022 Richard J. Cui. Created: Sun 07/22/2023  4:04:40.660 PM
-    % $Revision: 0.3 $  $Date: Sun 10/08/2023 01:47:23.870 AM $
+    % $Revision: 0.4 $  $Date: Sun 10/08/2023 10:48:26.588 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -48,7 +48,7 @@ function varargout = project_setup(proj_root, options)
     addpath(genpath('./analysis'))
     addpath(genpath('../proj_util'))
     % % * add fieldtrip
-    cprintf('*blue', 'adding fieldtrip root directory...\n')
+    fprintf('adding fieldtrip root directory...\n')
     ft_home = '../../../../ComputationalToolbox/neurophysiology_signals_analysis/fieldtrip';
     addpath(ft_home)
     % ft_defaults

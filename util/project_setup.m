@@ -16,7 +16,7 @@ function varargout = project_setup(proj_root, options)
     % See also .
 
     % 2022 Richard J. Cui. Created: Sun 07/22/2023  4:04:40.660 PM
-    % $Revision: 0.4 $  $Date: Sun 10/08/2023 10:48:26.588 AM $
+    % $Revision: 0.5 $  $Date: Mon 10/09/2023 08:35:28.664 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -54,7 +54,7 @@ function varargout = project_setup(proj_root, options)
     % ft_defaults
 
     % * add DHN
-    cprintf('*blue', 'adding Dark hourse neuron...\n')
+    fprintf('adding Dark hourse neuron...\n')
     dhn_root = '/Users/Jie/DHN';
     sys_loc = get_system_loc();
 

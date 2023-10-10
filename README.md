@@ -15,19 +15,20 @@ The backbone of the toolbox is a C-MEX package which is also employed in [MEF_im
 Installation
 ------------
 
-1. Download and install [FieldTrip](https://github.com/fieldtrip/fieldtrip). Assume that the root directory of FieldTrip is `fieldtrip`.
-(_Please note that at present, **mef_reader_fieldtrip** has not been merged officially into Fieldtrip.
-You may download a fork of Fieldtrip [here](https://github.com/jiecui/fieldtrip/tree/master), where the toolbox has been installed_).
+1. From [Dark Horse Neuro, Inc](http://darkhorseneuro.com/) download and install MED 1.0 reader `read_MED` for your computer operating system.
+1. Download and install [FieldTrip](https://github.com/fieldtrip/fieldtrip). Assume that the root directory of FieldTrip is `\path\to\fieldtrip\root\folder`.
+(_Please note that at present, **mef_reader_fieldtrip** has not been merged officially into FieldTrip.
+You may download a fork of FieldTrip [here](https://github.com/jiecui/fieldtrip/tree/master), where the toolbox has been installed_).
 1. Download [mef_reader_fieldtrip](https://github.com/jiecui/mef_reader_fieldtrip) package and unzip it if necessary.
-1. If the version of Fieldtrip is not capable of recognizing MEF data type, look for the directory `fieldtrip` in **mef_reader_fieldtrip** package and then copy it to the root directory of FieldTrip `fieldtrip`.
+1. If the version of Fieldtrip is not capable of recognizing MEF data type, look for the directory `fieldtrip` in **mef_reader_fieldtrip** package and then copy it to the root directory of FieldTrip `\path\to\fieldtrip\root\folder`.
 1. Otherwise, check the `external` directory of Fieldtrip. If the folder `mayo_mef` exists, go to next step. If not, only copy the folder `mayo_mef` under the directory `external` of **mef_reader_fieldtrip** package to the `external` directory of FieldTrip.
-1. In MATLAB, go to the directory `fieldtrip` and type commands `ft_defaults` and `ft_hastoolbox('mayo_mef',1);` to install the toolbox. 
+1. In MATLAB, go to the directory `fieldtrip` and type commands `ft_defaults` and `ft_hastoolbox('mayo_mef', 1);` to install the toolbox. 
 1. If necessary, make mex files by typing command `make_mayo_mex` in MATLAB command window.
 
 Sample data
 -----------
 
-A small sample dataset (~17 M) of MEF 2.1/3.0 is provided from this [link](https://app.box.com/s/wwkdwl51joavrblu40v075bz2gb5fwrf) on box.com, or from Open Science Framework (OSF) via this [link](https://osf.io/q7hwe/?view_only=b30ab1f63fb041aea9b1155f71a4751a).
+A sample dataset (~1.24 GB) of MED 1.0 and MEF 2.1/3.0 is provided from [box.com](https://app.box.com/s/wwkdwl51joavrblu40v075bz2gb5fwrf), or from [Open Science Framework (OSF)](https://osf.io/q7hwe/?view_only=b30ab1f63fb041aea9b1155f71a4751a).
 Look for the folder `sample_mef` and download it to your local computer.
 To test the toolbox using the sample data, open `test_mayo_mef.m` under directory `fieldtrip/test` and modify the variables according to the locations of the dataset.
 Two additional examples of reading MEF dataset, `ft_example_read_mef2p1.m` and `ft_example_read_mef3p0.m` are included in folder `sample_mef` as well.

@@ -55,7 +55,7 @@ function varargout = project_setup(proj_root, options)
 
     % * add DHN
     fprintf('adding Dark hourse neuron...\n')
-    dhn_root = '/Users/Jie/DHN';
+    dhn_root = fullfile(filesep, 'Users', getenv('USER'), 'DHN');
     sys_loc = get_system_loc();
 
     switch sys_loc

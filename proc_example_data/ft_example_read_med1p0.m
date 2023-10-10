@@ -55,24 +55,24 @@ hdr = ft_read_header(sesspath, 'password', password);
 
 %% read data with ft_read_data() but specifying time interval using seconds
 % Let's import 10 seconds data at the beginning of the recording
-in_unit = 'second';
-be_second = [0, 10]; % 10-second time of data from the start
-out_unit = 'index';
-be_sample = med_ft.SessionUnitConvert(be_second, in_unit, out_unit);
-dat = ft_read_data(sesspath, ...
-    'begsample', be_sample(1), ...
-    'endsample', be_sample(2), ...
-    'header', hdr, ...
-    'password', password, ...
-    'chanindx', [1 2]); % the order of read data can be decided by
-% key-value 'chanindx'
+% in_unit = 'second';
+% be_second = [0, 10]; % 10-second time of data from the start
+% out_unit = 'index';
+% be_sample = med_ft.SessionUnitConvert(be_second, in_unit, out_unit);
+% dat = ft_read_data(sesspath, ...
+%     'begsample', be_sample(1), ...
+%     'endsample', be_sample(2), ...
+%     'header', hdr, ...
+%     'password', password, ...
+%     'chanindx', [1 2]); % the order of read data can be decided by
+% % key-value 'chanindx'
 
-t = linspace(be_second(1), be_second(2), be_sample(2) - be_sample(1) + 1);
-figure
-plot(t, dat')
-xlim([0 1.5] + be_second(1))
-xlabel('Time (s)')
-legend(hdr.label{1}, hdr.label{2})
+% t = linspace(be_second(1), be_second(2), be_sample(2) - be_sample(1) + 1);
+% figure
+% plot(t, dat')
+% xlim([0 1.5] + be_second(1))
+% xlabel('Time (s)')
+% legend(hdr.label{1}, hdr.label{2})
 
 %% read data with ft_preprocessing()
 % Let's import 5 trials/epochs. Each trial is 1.50 second long.  The
@@ -80,28 +80,28 @@ legend(hdr.label{1}, hdr.label{2})
 % with the pre-stimulus length of 0.5 second.
 %
 % setup trial information
-trig = [.5, 2, 3.5, 5, 6.5]; % in seconds
-n_trig = length(trig); % number of triggers
-trigger = mef_ft.SessionUnitConvert(trig, in_unit, out_unit)';
-prestim = mef_ft.SessionUnitConvert(.5, in_unit, out_unit) * ones(n_trig, 1);
-poststim = mef_ft.SessionUnitConvert(1., in_unit, out_unit) * ones(n_trig, 1);
-trl = [trigger - prestim + 1, trigger + poststim, -prestim];
+% trig = [.5, 2, 3.5, 5, 6.5]; % in seconds
+% n_trig = length(trig); % number of triggers
+% trigger = med_ft.SessionUnitConvert(trig, in_unit, out_unit)';
+% prestim = med_ft.SessionUnitConvert(.5, in_unit, out_unit) * ones(n_trig, 1);
+% poststim = med_ft.SessionUnitConvert(1., in_unit, out_unit) * ones(n_trig, 1);
+% trl = [trigger - prestim + 1, trigger + poststim, -prestim];
 
-% read the data
-cfg = [];
-cfg.dataset = sesspath;
-cfg.password = password;
-cfg.header = hdr;
-cfg.trl = trl;
-dat_ieeg = ft_preprocessing(cfg);
+% % read the data
+% cfg = [];
+% cfg.dataset = sesspath;
+% cfg.password = password;
+% cfg.header = hdr;
+% cfg.trl = trl;
+% dat_ieeg = ft_preprocessing(cfg);
 
-% plot the data
-cfg.viewmode = 'vertical';
-brwview = ft_databrowser(cfg, dat_ieeg);
+% % plot the data
+% cfg.viewmode = 'vertical';
+% brwview = ft_databrowser(cfg, dat_ieeg);
 
 %% Copyright (c) 2020 MNL group
 % Created on Sun 03/22/2020  9:03:27.318 PM
-% Revision: 0.8  Date: Fri 05/15/2020 12:06:17.656 PM
+% Revision: 0.9  Date: Mon 10/09/2023 11:05:07.975 PM
 %
 % Multimodal Neuroimaging Lab (Dr. Dora Hermes)
 % Mayo Clinic St. Mary Campus

@@ -30,8 +30,8 @@ Sample data
 
 A sample dataset (~1.24 GB) of MED 1.0 and MEF 2.1/3.0 is provided from [box.com](https://app.box.com/s/wwkdwl51joavrblu40v075bz2gb5fwrf), or from [Open Science Framework (OSF)](https://osf.io/q7hwe/?view_only=b30ab1f63fb041aea9b1155f71a4751a).
 Look for the folder `sample_mef` and download it to your local computer.
-To test the toolbox using the sample data, open `test_mayo_mef.m` under directory `fieldtrip/test` and modify the variables according to the locations of the dataset.
-Two additional examples of reading MEF dataset, `ft_example_read_mef2p1.m` and `ft_example_read_mef3p0.m` are included in folder `sample_mef` as well.
+To test the toolbox using the sample data, open `test_mayo_mef.m` under directory `\path\to\fieldtrip\root\folder\test` and modify the variables according to the locations of the dataset.
+Three additional examples of reading MED/MEF datasets, `ft_example_read_med1p0.m`, `ft_example_read_mef2p1.m` and `ft_example_read_mef3p0.m` are included in folder `sample_mef` as well.
 
     % =========================================================================
     % Note of sample dataset
@@ -44,8 +44,9 @@ Two additional examples of reading MEF dataset, `ft_example_read_mef2p1.m` and `
     % please set the path to sample dataset
     mef21_data = '/path/to/sample_mef/mef_2p1';
     mef30_data = '/path/to/sample_mef/mef_3p0.mefd';
+    med10_data = '/path/to/sample_mef/med_1p0.medd';
 
-Set the locations of the dataset in the last two lines of above code block and then execute command `test_mayo_mef` in MATLAB.
+Set the locations of the dataset in the last three lines of above code block in `test_mayo_mef.m` and then execute command `test_mayo_mef` in MATLAB.
 
 Acknowledgment
 --------------

@@ -1092,6 +1092,7 @@ switch dataformat
       warning(['Some channels ignored due to different sampling rates: ' excludedChannelLabels]);
     end
     dimord = 'samples_chans';
+    dat = dat(begsample:endsample, chanindx);
     
   case 'neuroscope_bin'
     switch hdr.orig.nBits

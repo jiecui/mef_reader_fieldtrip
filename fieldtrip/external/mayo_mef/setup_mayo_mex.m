@@ -76,10 +76,6 @@ function setup_mayo_mex(options)
         med_mex_path = string(1, 0);
     end % if
 
-    % install mayo_mef package
-    % ------------------------
-    ft_hastoolbox('mayo_mef', 1);
-
     % get current directory
     % ---------------------
     cur_dir = pwd;
@@ -98,7 +94,7 @@ function setup_mayo_mex(options)
         cd(mef_mex_path)
         make_mex_mef
     else % check mex files in mayo_mef
-        valid_mex = check_mex_files(mayo_mef, MexType = "MEF");
+        valid_mex = check_mex_files(mayo_mef, 'MexType', 'MEF');
 
         if valid_mex == false
             cd(mef_mex_path)
@@ -116,7 +112,7 @@ function setup_mayo_mex(options)
         fprintf('***************************\n')
 
         % check mex files in read_MED
-        valid_mex = check_mex_files(med_mex_path, MexType = 'MED');
+        valid_mex = check_mex_files(med_mex_path, 'MexType', 'MED');
 
         if valid_mex == false
             warning('MAYO_MEF:setup_mayo_mex', ...

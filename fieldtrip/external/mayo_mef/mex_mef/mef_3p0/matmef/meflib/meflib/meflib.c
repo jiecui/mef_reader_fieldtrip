@@ -6,7 +6,7 @@
 
 
 // Specification for Multiscale Electrophysiology Format (MEF) version 3.0
-// Copyright 2013, Mayo Foundation, Rochester MN. All rights reserved.
+// Copyright 2021, Mayo Foundation, Rochester MN. All rights reserved.
 // Written by Matt Stead, Ben Brinkmann, and Dan Crepeau.
 
 // Usage and modification of this source code is governed by the Apache 2.0 license.
@@ -743,16 +743,18 @@ FILE_PROCESSING_STRUCT	*allocate_file_processing_struct(si8 raw_data_bytes, ui4 
 
 inline void	apply_recording_time_offset(si8 *time)
 {
-        if (*time == UUTC_NO_ENTRY)
-                return;
+	if (*time == UUTC_NO_ENTRY)
+		return;
         
 	if (*time < 0)  // negative times indicate recording time offset already applied
 		return;
 	
-	// apply recording time offset & make negative to indicate application
-	*time = -(*time - MEF_globals->recording_time_offset);
-	
-        
+	// apply recording time offset (on valid offset entry) and make negative to indicate application
+	if (MEF_globals->recording_time_offset == METADATA_RECORDING_TIME_OFFSET_NO_ENTRY)
+		*time = -(*time);
+	else
+		*time = -(*time - MEF_globals->recording_time_offset);
+
 	return;
 }
 
@@ -2027,12 +2029,16 @@ size_t	e_fread(void *ptr, size_t size, size_t n_members, FILE *stream, si1 *path
 }
 
 
-si4	e_fseek(FILE *stream, size_t offset, si4 whence, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail)
+si4	e_fseek(FILE *stream, si8 offset, si4 whence, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail)
 {
 	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
 		behavior_on_fail = MEF_globals->behavior_on_fail;
 	
+#ifndef _WIN32
 	if ((fseek(stream, offset, whence)) == -1) {
+#else
+    if ((_fseeki64(stream, offset, whence)) == -1) {
+#endif
 		if (!(behavior_on_fail & SUPPRESS_ERROR_OUTPUT)) {
 			#ifdef _WIN32
 				(void) fprintf(stderr, "%c\n\t%s() failed to move the file pointer to requested location (offset %lld, whence %d)\n", 7, __FUNCTION__, offset, whence);
@@ -2318,10 +2324,14 @@ si4	encrypt_records(FILE_PROCESSING_STRUCT *fps)
 #ifdef _WIN32
 	si4	extract_path_parts(si1 *full_file_name, si1 *path, si1 *name, si1 *extension)
 	{
-		si1	*c, *cc, *cwd, temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
+		si1* c, * cc, * cwd;
+		si1 temp_full_file_name[MEF_FULL_FILE_NAME_BYTES];
+		si1 temp_full_file_name_backslash[MEF_FULL_FILE_NAME_BYTES];
+		TCHAR** lppPart = { NULL };
 		
-	    slash_to_backslash(full_file_name);
-		MEF_strncpy(temp_full_file_name, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
+		MEF_strncpy(temp_full_file_name_backslash, full_file_name, MEF_FULL_FILE_NAME_BYTES);  // do non-destructively
+	    slash_to_backslash(temp_full_file_name_backslash);
+		GetFullPathNameA(temp_full_file_name_backslash, MEF_FULL_FILE_NAME_BYTES, temp_full_file_name, lppPart);
 		
 		// move pointer to end of string
 		c = temp_full_file_name + strlen(temp_full_file_name) - 1;
@@ -3603,8 +3613,8 @@ void	force_behavior(ui4 behavior)
 
 
 void	fps_close(FILE_PROCESSING_STRUCT *fps) {
-	
-	fclose(fps->fp);
+	if (fps->fp != NULL)
+		fclose(fps->fp);
 	fps->fp = NULL;
 	fps->fd = -1;
 	
@@ -3654,7 +3664,11 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	#ifndef _WIN32
 		si4		lock_type;
 	#endif
+#ifndef _WIN32
 	struct stat	sb;
+#else
+	struct _stat64 sb64;
+#endif
 	
 	
 	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
@@ -3727,10 +3741,13 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 			exit(1);
 	}
 	
-	// get file descriptor
-	fps->fd = fileno(fps->fp);
-	
-	#ifndef _WIN32
+	#ifdef _WIN32
+		// get file descriptor
+		fps->fd = _fileno(fps->fp);
+    #else
+		// get file descriptor
+		fps->fd = fileno(fps->fp);
+		
 		// lock
 		if (fps->directives.lock_mode != FPS_NO_LOCK_MODE) {
 			lock_type = FPS_NO_LOCK_TYPE;
@@ -3756,13 +3773,18 @@ si4	fps_open(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 				else if (behavior_on_fail & EXIT_ON_FAIL)
 					exit(1);
 			}
-			fps_lock(fps, lock_type, function, line, behavior_on_fail);
+			//fps_lock(fps, lock_type, function, line, behavior_on_fail);
 		}
 	#endif
-	
+
 	// get file length
+#ifndef _WIN32
 	fstat(fps->fd, &sb);
 	fps->file_length = sb.st_size;
+#else
+	_fstat64(fps->fd, &sb64);  // 64-bit necessary for file sizes greater than 4 GB
+	fps->file_length = sb64.st_size;
+#endif
 	
 	
 	return(0);
@@ -3779,8 +3801,8 @@ si4	fps_read(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	
 	#ifndef _WIN32
 		// lock
-		if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
-			fps_lock(fps, F_RDLCK, function, line, behavior_on_fail);
+		//if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
+		//	fps_lock(fps, F_RDLCK, function, line, behavior_on_fail);
 	#endif
 	// read
 	if (fps->directives.io_bytes == FPS_FULL_FILE)
@@ -3791,8 +3813,8 @@ si4	fps_read(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 	
 	#ifndef _WIN32
 		// unlock
-		if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
-			fps_unlock(fps, function, line, behavior_on_fail);
+		//if (fps->directives.lock_mode & FPS_READ_LOCK_ON_READ)
+		//	fps_unlock(fps, function, line, behavior_on_fail);
 	#endif
 	
 	return(0);
@@ -3837,7 +3859,11 @@ si4	fps_read(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 beh
 si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 behavior_on_fail)
 {
 	si8		o_bytes;
+#ifndef _WIN32
 	struct stat	sb;
+#else
+	struct _stat64 sb64;
+#endif
 	
         
 	if (behavior_on_fail == USE_GLOBAL_BEHAVIOR)
@@ -3845,8 +3871,8 @@ si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 be
 	
 	#ifndef _WIN32
 		// lock
-		if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
-			fps_lock(fps, F_WRLCK, function, line, behavior_on_fail);
+		//if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
+		//	fps_lock(fps, F_WRLCK, function, line, behavior_on_fail);
 	#endif
 	
 	// write
@@ -3858,14 +3884,19 @@ si4	fps_write(FILE_PROCESSING_STRUCT *fps, const si1 *function, si4 line, ui4 be
 	
 	#ifndef _WIN32
 		// unlock
-		if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
-			fps_unlock(fps, function, line, behavior_on_fail);
+		//if (fps->directives.lock_mode & FPS_WRITE_LOCK_ON_WRITE)
+		//	fps_unlock(fps, function, line, behavior_on_fail);
 	#endif
         
 	// get file length
 	fflush(fps->fp);  // have to flush to update stat structure after write
+#ifndef _WIN32
 	fstat(fps->fd, &sb);
 	fps->file_length = sb.st_size;
+#else
+	_fstat64(fps->fd, &sb64);
+	fps->file_length = sb64.st_size;
+#endif
 	
 	
 	return(0);
@@ -3995,12 +4026,12 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		si4 i, j;
 		si1 temp_str[MEF_FULL_FILE_NAME_BYTES];
 		si1 *ext;
-        struct _stat sb;
+		struct _stat64 sb64;
         si4 skip_segment;
         si1 temp_path[MEF_FULL_FILE_NAME_BYTES], temp_name[MEF_SEGMENT_BASE_FILE_NAME_BYTES], temp_extension[TYPE_BYTES];
 
 		// Windows structures
-        WIN32_FIND_DATA fdFile; 
+        WIN32_FIND_DATAA fdFile; 
 	    HANDLE hFind = NULL; 
 
 	    // free previous file list
@@ -4013,15 +4044,15 @@ void	free_session(SESSION *session, si4 free_session_structure)
 	    // get the files / directoris with required extension and count by building a mask
 	    *num_files = 0;
 	    sprintf(temp_path, "%s\\*.*", enclosing_directory); 
-	    if((hFind = FindFirstFile(temp_path, &fdFile)) == INVALID_HANDLE_VALUE) 
+	    if((hFind = FindFirstFileA(temp_path, &fdFile)) == INVALID_HANDLE_VALUE) 
 	    { 
 	        (void) UTF8_fprintf(stderr, "%c\n\t%s() failed to open directory \"%s\"\n", 7, __FUNCTION__, enclosing_directory);
 			return 0;
 	    } 
 
-	    while (FindNextFile(hFind, &fdFile)){
-	    	//Skip initial "." and ".." directories
-	        if((strcmp((si1 *) fdFile.cFileName, ".") != 0) && (strcmp((si1 *)fdFile.cFileName, "..") != 0))
+	    while (FindNextFileA(hFind, &fdFile)){
+	    	// Skip initial "." and ".." directories, and also any directory name beginning with a "."
+	        if (strncmp((si1 *) fdFile.cFileName, ".", 1) != 0)
 	        { 
 	        	sprintf(temp_path, "%s\\%s", enclosing_directory, (si1 *) fdFile.cFileName); 
 
@@ -4040,15 +4071,16 @@ void	free_session(SESSION *session, si4 free_session_structure)
 		
 	    // now read again and allocate and build
 	    sprintf(temp_path, "%s\\*.*", enclosing_directory);
-		hFind = FindFirstFile(temp_path, &fdFile);
+		hFind = FindFirstFileA(temp_path, &fdFile);
 		if ( file_list == NULL ){
 			file_list = (si1 **) e_calloc((size_t) *num_files, sizeof(si1 *), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 			i = 0;
-			while (FindNextFile(hFind, &fdFile)) {
+			while (FindNextFileA(hFind, &fdFile)) {
 				// Get extension
 
-				if((strcmp((si1 *) fdFile.cFileName, ".") != 0) && (strcmp((si1 *)fdFile.cFileName, "..") != 0)){
-
+				// Skip initial "." and ".." directories, and also any directory name beginning with a "."
+				if (strncmp((si1*)fdFile.cFileName, ".", 1) != 0) 
+				{
 					ext = strrchr((si1 *) fdFile.cFileName, '.');
 					if (ext != NULL && strlen(ext) != 1)
 						ext++;
@@ -4078,9 +4110,9 @@ void	free_session(SESSION *session, si4 free_session_structure)
 			                if (!strcmp(temp_extension, TIME_SERIES_CHANNEL_DIRECTORY_TYPE_STRING)){
 
 				                // get file length
-				                _stat(temp_str, &sb);
+				                _stat64(temp_str, &sb64);  // 64-bit necessary for file sizes greater than 4 GB
 
-				                if (sb.st_size <= UNIVERSAL_HEADER_BYTES)
+				                if (sb64.st_size <= UNIVERSAL_HEADER_BYTES)
 				                {
 				                    skip_segment = 1;
 				                    (*num_files)--;
@@ -4149,7 +4181,8 @@ void	free_session(SESSION *session, si4 free_session_structure)
 			if (ext != NULL && strlen(ext) != 1)
 				ext++;
 			
-			if (!((ext == NULL) || (ext == contents_list[n]->d_name)) &&  (!strcmp(ext, extension)))
+			// make sure 1) the file has an extension, 2) the extension is one we are searching for, 3) and that the directory name doesn't begin with a "."
+			if ((!((ext == NULL) || (ext == contents_list[n]->d_name)) && (!strcmp(ext, extension))) && strncmp(contents_list[n]->d_name, ".", 1))
 				++(*num_files);
 			++n;
 	    }
@@ -4165,7 +4198,8 @@ void	free_session(SESSION *session, si4 free_session_structure)
 				if (ext != NULL && strlen(ext) != 1)
 					ext++;
 				
-				if (!((ext == NULL) || (ext == contents_list[n]->d_name)) &&  (!strcmp(ext, extension))){
+				// make sure 1) the file has an extension, 2) the extension is one we are searching for, 3) and that the directory name doesn't begin with a "."
+				if ((!((ext == NULL) || (ext == contents_list[n]->d_name)) && (!strcmp(ext, extension))) && strncmp(contents_list[n]->d_name, ".", 1)) {
 					file_list[i] = (si1 *) e_malloc((size_t) MEF_FULL_FILE_NAME_BYTES, __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 					MEF_strcpy(temp_str, enclosing_directory);
 					
@@ -4343,8 +4377,8 @@ void	initialize_MEF_globals()
 	MEF_globals->recording_time_offset = MEF_GLOBALS_RECORDING_TIME_OFFSET_DEFAULT;
 	MEF_globals->recording_time_offset_mode = MEF_GLOBALS_RECORDING_TIME_OFFSET_MODE_DEFAULT;
 	MEF_globals->GMT_offset = MEF_GLOBALS_GMT_OFFSET_DEFAULT;
-        MEF_globals->DST_start_time = MEF_GLOBALS_DST_START_TIME_DEFAULT;
-        MEF_globals->DST_end_time = MEF_GLOBALS_DST_END_TIME_DEFAULT;
+	MEF_globals->DST_start_time = MEF_GLOBALS_DST_START_TIME_DEFAULT;
+	MEF_globals->DST_end_time = MEF_GLOBALS_DST_END_TIME_DEFAULT;
 	// alignment fields
 	MEF_globals->universal_header_aligned = MEF_UNKNOWN;
 	MEF_globals->metadata_section_1_aligned = MEF_UNKNOWN;
@@ -4376,11 +4410,13 @@ void	initialize_MEF_globals()
 	MEF_globals->UTF8_trailing_bytes_for_UTF8_table = NULL;
 	// miscellaneous
 	MEF_globals->verbose = MEF_GLOBALS_VERBOSE_DEFAULT;
-        MEF_globals->behavior_on_fail = MEF_GLOBALS_BEHAVIOR_ON_FAIL_DEFAULT;
-        #ifndef _WIN32
+	MEF_globals->behavior_on_fail = MEF_GLOBALS_BEHAVIOR_ON_FAIL_DEFAULT;
+	#ifndef _WIN32
 		MEF_globals->file_creation_umask = MEF_GLOBALS_FILE_CREATION_UMASK_DEFAULT;
 	#endif
-	
+	MEF_globals->read_time_series_indices   = 1;
+	MEF_globals->read_video_indices         = 1;
+	MEF_globals->read_record_indices        = 1;
 	
 	return;
 }
@@ -4450,10 +4486,55 @@ si4	initialize_meflib()
 	(void) SHA256_initialize_h0_table(MEF_TRUE);
 	(void) SHA256_initialize_k_table(MEF_TRUE);
 	
-	
 	return(return_value);
 }
 
+void free_meflib()
+{
+	
+	if (MEF_globals != NULL) {
+		
+		if (MEF_globals->SHA256_k_table != NULL) {
+			free(MEF_globals->SHA256_k_table);
+			MEF_globals->SHA256_k_table = NULL;
+		}
+		if (MEF_globals->SHA256_h0_table != NULL) {
+			free(MEF_globals->SHA256_h0_table);
+			MEF_globals->SHA256_h0_table = NULL;
+		}
+		if (MEF_globals->AES_rcon_table != NULL) {
+			free(MEF_globals->AES_rcon_table);
+			MEF_globals->AES_rcon_table = NULL;
+		}
+		if (MEF_globals->AES_rsbox_table != NULL) {
+			free(MEF_globals->AES_rsbox_table);
+			MEF_globals->AES_rsbox_table = NULL;
+		}
+		if (MEF_globals->AES_sbox_table != NULL) {
+			free(MEF_globals->AES_sbox_table);
+			MEF_globals->AES_sbox_table = NULL;
+		}
+		if (MEF_globals->UTF8_trailing_bytes_for_UTF8_table != NULL) {
+			free(MEF_globals->UTF8_trailing_bytes_for_UTF8_table);
+			MEF_globals->UTF8_trailing_bytes_for_UTF8_table = NULL;
+		}
+		if (MEF_globals->UTF8_offsets_from_UTF8_table != NULL) {
+			free(MEF_globals->UTF8_offsets_from_UTF8_table);
+			MEF_globals->UTF8_offsets_from_UTF8_table = NULL;
+		}
+		if (MEF_globals->CRC_table != NULL) {
+			free(MEF_globals->CRC_table);
+			MEF_globals->CRC_table = NULL;
+		}
+		if (MEF_globals->RED_normal_CDF_table != NULL) {
+			free(MEF_globals->RED_normal_CDF_table);
+			MEF_globals->RED_normal_CDF_table = NULL;
+		}
+		
+		free(MEF_globals);
+		MEF_globals = NULL;
+	}
+}
 
 si4	initialize_metadata(FILE_PROCESSING_STRUCT *fps)
 {
@@ -5326,10 +5407,10 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 	free(segment_names);
         
         // fill in channel metadata
-        if (channel->metadata.section_1 == NULL)
-                channel->metadata.section_1 = (METADATA_SECTION_1 *) e_calloc((size_t) 1, sizeof(METADATA_SECTION_1), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-        if (channel->metadata.section_3 == NULL)
-                channel->metadata.section_3 = (METADATA_SECTION_3 *) e_calloc((size_t) 1, sizeof(METADATA_SECTION_3), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+	if (channel->metadata.section_1 == NULL)
+			channel->metadata.section_1 = (METADATA_SECTION_1 *) e_calloc((size_t) 1, sizeof(METADATA_SECTION_1), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+	if (channel->metadata.section_3 == NULL)
+			channel->metadata.section_3 = (METADATA_SECTION_3 *) e_calloc((size_t) 1, sizeof(METADATA_SECTION_3), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 	if (channel->channel_type == TIME_SERIES_CHANNEL_TYPE) {
 		if (channel->metadata.time_series_section_2 == NULL)
 			channel->metadata.time_series_section_2 = (TIME_SERIES_METADATA_SECTION_2 *) e_calloc((size_t) 1, sizeof(TIME_SERIES_METADATA_SECTION_2), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
@@ -5338,50 +5419,46 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			channel->metadata.video_section_2 = (VIDEO_METADATA_SECTION_2 *) e_calloc((size_t) 1, sizeof(VIDEO_METADATA_SECTION_2), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 	}
 
-        // times series channel
-        if (channel->channel_type == TIME_SERIES_CHANNEL_TYPE) {
-		
-                for (i = 0; i < n_segments; ++i) {
-                        seg = channel->segments + i;
+	// times series channel
+	if (channel->channel_type == TIME_SERIES_CHANNEL_TYPE) {
+	
+		for (i = 0; i < n_segments; ++i) {
+			seg = channel->segments + i;
 			smd1 = seg->metadata_fps->metadata.section_1;
 			cmd1 = channel->metadata.section_1;
 			stmd = seg->metadata_fps->metadata.time_series_section_2;
-                        ctmd = channel->metadata.time_series_section_2;
+			ctmd = channel->metadata.time_series_section_2;
 			smd3 = seg->metadata_fps->metadata.section_3;
 			cmd3 = channel->metadata.section_3;
-			if (i == 0) {
-                                memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
-                                memcpy(ctmd, stmd, METADATA_SECTION_2_BYTES);
-                                memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
-                                if (ABS(channel->earliest_start_time) > ABS(seg->metadata_fps->universal_header->start_time))
-					channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
-                                if (ABS(channel->latest_end_time) < ABS(seg->metadata_fps->universal_header->end_time))
-					channel->latest_end_time = seg->metadata_fps->universal_header->end_time;
-                                if (seg->record_data_fps != NULL) {
-                                	if (channel->maximum_number_of_records < seg->record_data_fps->universal_header->number_of_entries)
-						channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
-                                        if (channel->maximum_record_bytes < seg->record_data_fps->universal_header->maximum_entry_size)
-						channel->maximum_record_bytes = seg->record_data_fps->universal_header->maximum_entry_size;
-                                }
-				if (strlen(channel->anonymized_name) == 0)
-					MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-				else if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-					bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-                                continue;
-                        }
-			// universal header
+			
+			// update channel properties based on each segment
 			if (ABS(seg->metadata_fps->universal_header->start_time) < ABS(channel->earliest_start_time))
 				channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
 			if (ABS(seg->metadata_fps->universal_header->end_time) > ABS(channel->latest_end_time))
 				channel->latest_end_time = seg->metadata_fps->universal_header->end_time;
-			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+			if (seg->time_series_data_fps != NULL && (ABS(seg->time_series_data_fps->universal_header->end_time) < ABS(channel->latest_end_time)))
+				channel->latest_end_time = seg->time_series_data_fps->universal_header->end_time;
+			if (seg->time_series_indices_fps != NULL && (ABS(seg->time_series_indices_fps->universal_header->end_time) < ABS(channel->latest_end_time)))
+				channel->latest_end_time = seg->time_series_indices_fps->universal_header->end_time;
 			if (seg->record_data_fps != NULL) {
 				if (seg->record_data_fps->universal_header->number_of_entries > channel->maximum_number_of_records)
 					channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
 				if (seg->record_data_fps->universal_header->maximum_entry_size > channel->maximum_record_bytes)
 					channel->maximum_record_bytes = seg->record_data_fps->universal_header->maximum_entry_size;
 			}
+			
+			// initialize the channel metadata based on the first segment metadata
+			if (i == 0) {
+				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
+				memcpy(ctmd, stmd, METADATA_SECTION_2_BYTES);
+				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
+				MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+				continue;
+			}
+			
+			// anonymized_name
+			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
+				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			// section 1
 			if (smd1->section_2_encryption != cmd1->section_2_encryption)
 				cmd1->section_2_encryption = ENCRYPTION_LEVEL_NO_ENTRY;
@@ -5404,26 +5481,26 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				bzero(ctmd->reference_description, METADATA_CHANNEL_DESCRIPTION_BYTES);
 			if (stmd->acquisition_channel_number != ctmd->acquisition_channel_number)
 				ctmd->acquisition_channel_number = TIME_SERIES_METADATA_ACQUISITION_CHANNEL_NUMBER_NO_ENTRY;
-                        if (stmd->sampling_frequency != ctmd->sampling_frequency)
-                                ctmd->sampling_frequency = TIME_SERIES_METADATA_SAMPLING_FREQUENCY_NO_ENTRY;
-                        if (stmd->low_frequency_filter_setting != ctmd->low_frequency_filter_setting)
-                                ctmd->low_frequency_filter_setting = TIME_SERIES_METADATA_LOW_FREQUENCY_FILTER_SETTING_NO_ENTRY;
-                        if (stmd->high_frequency_filter_setting != ctmd->high_frequency_filter_setting)
-                                ctmd->high_frequency_filter_setting = TIME_SERIES_METADATA_HIGH_FREQUENCY_FILTER_SETTING_NO_ENTRY;
-                        if (stmd->notch_filter_frequency_setting != ctmd->notch_filter_frequency_setting)
-                                ctmd->notch_filter_frequency_setting = TIME_SERIES_METADATA_NOTCH_FILTER_FREQUENCY_SETTING_NO_ENTRY;
+			if (stmd->sampling_frequency != ctmd->sampling_frequency)
+				ctmd->sampling_frequency = TIME_SERIES_METADATA_SAMPLING_FREQUENCY_NO_ENTRY;
+			if (stmd->low_frequency_filter_setting != ctmd->low_frequency_filter_setting)
+				ctmd->low_frequency_filter_setting = TIME_SERIES_METADATA_LOW_FREQUENCY_FILTER_SETTING_NO_ENTRY;
+			if (stmd->high_frequency_filter_setting != ctmd->high_frequency_filter_setting)
+				ctmd->high_frequency_filter_setting = TIME_SERIES_METADATA_HIGH_FREQUENCY_FILTER_SETTING_NO_ENTRY;
+			if (stmd->notch_filter_frequency_setting != ctmd->notch_filter_frequency_setting)
+				ctmd->notch_filter_frequency_setting = TIME_SERIES_METADATA_NOTCH_FILTER_FREQUENCY_SETTING_NO_ENTRY;
 			if (stmd->AC_line_frequency != ctmd->AC_line_frequency)
 				ctmd->AC_line_frequency = TIME_SERIES_METADATA_AC_LINE_FREQUENCY_NO_ENTRY;
 			if (stmd->units_conversion_factor != ctmd->units_conversion_factor)
-                                ctmd->units_conversion_factor = TIME_SERIES_METADATA_UNITS_CONVERSION_FACTOR_NO_ENTRY;
-                        if (strcmp(stmd->units_description, ctmd->units_description))
-                                bzero(ctmd->units_description, TIME_SERIES_METADATA_UNITS_DESCRIPTION_BYTES);
-                        if (stmd->maximum_native_sample_value > ctmd->maximum_native_sample_value)
-                                ctmd->maximum_native_sample_value = stmd->maximum_native_sample_value;
-                        if (stmd->minimum_native_sample_value < ctmd->minimum_native_sample_value)
-                                ctmd->minimum_native_sample_value = stmd->minimum_native_sample_value;
-                        if (stmd->start_sample < ctmd->start_sample)
-                        	ctmd->start_sample = stmd->start_sample;
+				ctmd->units_conversion_factor = TIME_SERIES_METADATA_UNITS_CONVERSION_FACTOR_NO_ENTRY;
+			if (strcmp(stmd->units_description, ctmd->units_description))
+				bzero(ctmd->units_description, TIME_SERIES_METADATA_UNITS_DESCRIPTION_BYTES);
+			if (stmd->maximum_native_sample_value > ctmd->maximum_native_sample_value)
+				ctmd->maximum_native_sample_value = stmd->maximum_native_sample_value;
+			if (stmd->minimum_native_sample_value < ctmd->minimum_native_sample_value)
+				ctmd->minimum_native_sample_value = stmd->minimum_native_sample_value;
+			if (stmd->start_sample < ctmd->start_sample)
+				ctmd->start_sample = stmd->start_sample;
 			if (i > 0)
 				ctmd->number_of_samples += stmd->number_of_samples;
 			if (i > 0)
@@ -5433,9 +5510,9 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			if (stmd->maximum_block_samples > ctmd->maximum_block_samples)
 				ctmd->maximum_block_samples = stmd->maximum_block_samples;
 			if (stmd->maximum_difference_bytes > ctmd->maximum_difference_bytes)
-                                ctmd->maximum_difference_bytes = stmd->maximum_difference_bytes;
-                        if (stmd->block_interval != ctmd->block_interval)
-                                ctmd->block_interval = TIME_SERIES_METADATA_BLOCK_INTERVAL_NO_ENTRY;
+				ctmd->maximum_difference_bytes = stmd->maximum_difference_bytes;
+            if (stmd->block_interval != ctmd->block_interval)
+                ctmd->block_interval = TIME_SERIES_METADATA_BLOCK_INTERVAL_NO_ENTRY;
 			if (stmd->number_of_discontinuities > ctmd->number_of_discontinuities)
 				ctmd->number_of_discontinuities = stmd->number_of_discontinuities;
 			if (stmd->maximum_contiguous_blocks > ctmd->maximum_contiguous_blocks)
@@ -5443,11 +5520,11 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			if (stmd->maximum_contiguous_block_bytes > ctmd->maximum_contiguous_block_bytes)
 				ctmd->maximum_contiguous_block_bytes = stmd->maximum_contiguous_block_bytes;
 			if (stmd->maximum_contiguous_samples > ctmd->maximum_contiguous_samples)
-                                ctmd->maximum_contiguous_samples = stmd->maximum_contiguous_samples;
-                        if (memcmp(stmd->protected_region, ctmd->protected_region, TIME_SERIES_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
-                                bzero(ctmd->protected_region, TIME_SERIES_METADATA_SECTION_2_PROTECTED_REGION_BYTES);
-                        if (memcmp(stmd->discretionary_region, ctmd->discretionary_region, TIME_SERIES_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES))
-                                bzero(ctmd->discretionary_region, TIME_SERIES_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES);
+				ctmd->maximum_contiguous_samples = stmd->maximum_contiguous_samples;
+			if (memcmp(stmd->protected_region, ctmd->protected_region, TIME_SERIES_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
+				bzero(ctmd->protected_region, TIME_SERIES_METADATA_SECTION_2_PROTECTED_REGION_BYTES);
+			if (memcmp(stmd->discretionary_region, ctmd->discretionary_region, TIME_SERIES_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES))
+				bzero(ctmd->discretionary_region, TIME_SERIES_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES);
 			// section 3
 			if (smd3->recording_time_offset != cmd3->recording_time_offset)
 				cmd3->recording_time_offset = UUTC_NO_ENTRY;
@@ -5469,13 +5546,13 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				bzero(cmd3->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES);
 			if (memcmp(smd3->discretionary_region, cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES))
 				bzero(cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES);
-                }
-        }
-        
-        // video channel
-        if (channel->channel_type == VIDEO_CHANNEL_TYPE) {
+		}
+	}
 
-                for (i = 0; i < n_segments; ++i) {
+	// video channel
+	if (channel->channel_type == VIDEO_CHANNEL_TYPE) {
+
+		for (i = 0; i < n_segments; ++i) {
 			seg = channel->segments + i;
 			smd1 = seg->metadata_fps->metadata.section_1;
 			cmd1 = channel->metadata.section_1;
@@ -5483,39 +5560,33 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 			cvmd = channel->metadata.video_section_2;
 			smd3 = seg->metadata_fps->metadata.section_3;
 			cmd3 = channel->metadata.section_3;
-			if (i == 0) {
-				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
-				memcpy(cvmd, svmd, METADATA_SECTION_2_BYTES);
-				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
-				if (ABS(channel->earliest_start_time) > ABS(seg->metadata_fps->universal_header->start_time))
-					channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
-				if (ABS(channel->latest_end_time) < ABS(seg->metadata_fps->universal_header->end_time))
-					channel->latest_end_time = seg->metadata_fps->universal_header->end_time;
-				if (seg->record_data_fps != NULL) {
-					if (channel->maximum_number_of_records < seg->record_data_fps->universal_header->number_of_entries)
-						channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
-					if (channel->maximum_record_bytes < seg->record_data_fps->universal_header->maximum_entry_size)
-						channel->maximum_record_bytes = seg->record_data_fps->universal_header->maximum_entry_size;
-				}
-				if (strlen(channel->anonymized_name) == 0)
-					MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-				else if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-					bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-				continue;
-			}
-			// universal header
+			
+			// update channel properties based on each segment
 			if (ABS(seg->metadata_fps->universal_header->start_time) < ABS(channel->earliest_start_time))
 				channel->earliest_start_time = seg->metadata_fps->universal_header->start_time;
 			if (ABS(seg->metadata_fps->universal_header->end_time) > ABS(channel->latest_end_time))
 				channel->latest_end_time = seg->metadata_fps->universal_header->end_time;
-			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
-				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+			if (seg->video_indices_fps != NULL && (ABS(seg->video_indices_fps->universal_header->end_time) < ABS(channel->latest_end_time)))
+				channel->latest_end_time = seg->video_indices_fps->universal_header->end_time;
 			if (seg->record_data_fps != NULL) {
 				if (seg->record_data_fps->universal_header->number_of_entries > channel->maximum_number_of_records)
 					channel->maximum_number_of_records = seg->record_data_fps->universal_header->number_of_entries;
 				if (seg->record_data_fps->universal_header->maximum_entry_size > channel->maximum_record_bytes)
 					channel->maximum_record_bytes = seg->record_data_fps->universal_header->maximum_entry_size;
 			}
+			
+			// initialize the channel metadata based on the first segment metadata
+			if (i == 0) {
+				memcpy(cmd1, smd1, METADATA_SECTION_1_BYTES);
+				memcpy(cvmd, svmd, METADATA_SECTION_2_BYTES);
+				memcpy(cmd3, smd3, METADATA_SECTION_3_BYTES);
+				MEF_strncpy(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+				continue;
+			}
+			
+			// anonymized_name
+			if (strcmp(channel->anonymized_name, seg->metadata_fps->universal_header->anonymized_name))
+				bzero(channel->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 			// section 1
 			if (smd1->section_2_encryption != cmd1->section_2_encryption)
 				cmd1->section_2_encryption = ENCRYPTION_LEVEL_NO_ENTRY;
@@ -5534,24 +5605,24 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				cvmd->recording_duration = UUTC_NO_ENTRY;
 			else
 				cvmd->recording_duration = ABS(channel->latest_end_time) - ABS(channel->earliest_start_time) + 1;
-                        if (svmd->horizontal_resolution != cvmd->horizontal_resolution)
-                                cvmd->horizontal_resolution = VIDEO_METADATA_HORIZONTAL_RESOLUTION_NO_ENTRY;
-                        if (svmd->vertical_resolution != cvmd->vertical_resolution)
-                                cvmd->vertical_resolution = VIDEO_METADATA_VERTICAL_RESOLUTION_NO_ENTRY;
-                        if (svmd->frame_rate != cvmd->frame_rate)
-                                cvmd->frame_rate = VIDEO_METADATA_FRAME_RATE_NO_ENTRY;
+			if (svmd->horizontal_resolution != cvmd->horizontal_resolution)
+				cvmd->horizontal_resolution = VIDEO_METADATA_HORIZONTAL_RESOLUTION_NO_ENTRY;
+			if (svmd->vertical_resolution != cvmd->vertical_resolution)
+				cvmd->vertical_resolution = VIDEO_METADATA_VERTICAL_RESOLUTION_NO_ENTRY;
+			if (svmd->frame_rate != cvmd->frame_rate)
+				cvmd->frame_rate = VIDEO_METADATA_FRAME_RATE_NO_ENTRY;
 			if (i > 0)
 				cvmd->number_of_clips += svmd->number_of_clips;
 			if (svmd->maximum_clip_bytes > cvmd->maximum_clip_bytes)
 				cvmd->maximum_clip_bytes = svmd->maximum_clip_bytes;
 			if (strcmp(svmd->video_format, cvmd->video_format))
 				bzero(cvmd->video_format, VIDEO_METADATA_VIDEO_FORMAT_BYTES);
-                        if (svmd->video_file_CRC != cvmd->video_file_CRC)
-                                cvmd->video_file_CRC = CRC_NO_ENTRY;
-                        if (memcmp(svmd->protected_region, cvmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
-                                bzero(cvmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES);
-                        if (memcmp(svmd->discretionary_region, cvmd->discretionary_region, VIDEO_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES))
-                                bzero(cvmd->discretionary_region, VIDEO_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES);
+			if (svmd->video_file_CRC != cvmd->video_file_CRC)
+				cvmd->video_file_CRC = CRC_NO_ENTRY;
+			if (memcmp(svmd->protected_region, cvmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
+				bzero(cvmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES);
+			if (memcmp(svmd->discretionary_region, cvmd->discretionary_region, VIDEO_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES))
+				bzero(cvmd->discretionary_region, VIDEO_METADATA_SECTION_2_DISCRETIONARY_REGION_BYTES);
 			// section 3
 			if (smd3->recording_time_offset != cmd3->recording_time_offset)
 				cmd3->recording_time_offset = UUTC_NO_ENTRY;
@@ -5573,37 +5644,34 @@ CHANNEL	*read_MEF_channel(CHANNEL *channel, si1 *chan_path, si4 channel_type, si
 				bzero(cmd3->protected_region, METADATA_SECTION_3_PROTECTED_REGION_BYTES);
 			if (memcmp(smd3->discretionary_region, cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES))
 				bzero(cmd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES);
-                }
-        }
-	
-        // read channel record indices if present
+		}
+	}
+
+	// read channel records indices/data (if required and present)
+	if (MEF_globals->read_record_indices || read_record_data) {
 		MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", channel->path, channel->name, channel->extension, channel->name, RECORD_INDICES_FILE_TYPE_STRING);
 		channel->record_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
-	    if (channel->record_indices_fps != NULL) {
+		if (channel->record_indices_fps != NULL) {
 			if (password_data == NULL)
 				password_data = channel->record_indices_fps->password_data;
 			// copy level UUID
 			memcpy(channel->level_UUID, channel->record_indices_fps->universal_header->level_UUID, UUID_BYTES);
-            // read channel record data
-            MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", channel->path, channel->name, channel->extension, channel->name, RECORD_DATA_FILE_TYPE_STRING);
-            channel->record_data_fps = allocate_file_processing_struct(0, RECORD_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
-            if (read_record_data == MEF_FALSE) {
-                    channel->record_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
-            }
-            (void) read_MEF_file(channel->record_data_fps, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
-            if (channel->record_data_fps == NULL)
-                    UTF8_fprintf(stderr, "%s() Warning: Channel record indices file, but no channel record data file (\"%s\") in channel directory\n\n", __FUNCTION__, full_file_name);
+			// read channel record data
+			MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", channel->path, channel->name, channel->extension, channel->name, RECORD_DATA_FILE_TYPE_STRING);
+			channel->record_data_fps = allocate_file_processing_struct(0, RECORD_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
+			if (read_record_data == MEF_FALSE) {
+					channel->record_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
+			}
+			(void) read_MEF_file(channel->record_data_fps, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
+			if (channel->record_data_fps == NULL)
+					UTF8_fprintf(stderr, "%s() Warning: Channel record indices file, but no channel record data file (\"%s\") in channel directory\n\n", __FUNCTION__, full_file_name);
 			
 			if (channel->maximum_number_of_records < channel->record_data_fps->universal_header->number_of_entries)
 				channel->maximum_number_of_records = channel->record_data_fps->universal_header->number_of_entries;
 			if (channel->maximum_record_bytes < channel->record_data_fps->universal_header->maximum_entry_size)
 				channel->maximum_record_bytes = channel->record_data_fps->universal_header->maximum_entry_size;
-			if (ABS(channel->record_data_fps->universal_header->start_time) < ABS(channel->earliest_start_time))
-				channel->earliest_start_time = channel->record_data_fps->universal_header->start_time;
-			if (ABS(channel->record_data_fps->universal_header->end_time) > ABS(channel->latest_end_time))
-				channel->latest_end_time = channel->record_data_fps->universal_header->end_time;
-			MEF_strncpy(channel->anonymized_name, channel->record_data_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
 		}
+	}
 
 	if (MEF_globals->verbose == MEF_TRUE) {
 		if (channel_type == TIME_SERIES_CHANNEL_TYPE) {
@@ -5930,15 +5998,19 @@ SEGMENT	*read_MEF_segment(SEGMENT *segment, si1 *seg_path, si4 channel_type, si1
 	// read segment indices
 	switch (channel_type) {
 		case TIME_SERIES_CHANNEL_TYPE:
-			MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, TIME_SERIES_INDICES_FILE_TYPE_STRING);
-			segment->time_series_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, USE_GLOBAL_BEHAVIOR);
-			// update metadata if metadata conflicts with actual data
-			if (segment->metadata_fps->metadata.time_series_section_2->number_of_blocks > segment->time_series_indices_fps->universal_header->number_of_entries)
-                                segment->metadata_fps->metadata.time_series_section_2->number_of_blocks = segment->time_series_indices_fps->universal_header->number_of_entries;
+			if (MEF_globals->read_time_series_indices) {
+				MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, TIME_SERIES_INDICES_FILE_TYPE_STRING);
+				segment->time_series_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, USE_GLOBAL_BEHAVIOR);
+				// update metadata if metadata conflicts with actual data
+				if (segment->metadata_fps->metadata.time_series_section_2->number_of_blocks > segment->time_series_indices_fps->universal_header->number_of_entries)
+					segment->metadata_fps->metadata.time_series_section_2->number_of_blocks = segment->time_series_indices_fps->universal_header->number_of_entries;
+			}
 			break;
 		case VIDEO_CHANNEL_TYPE:
-			MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, VIDEO_INDICES_FILE_TYPE_STRING);
-			segment->video_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, USE_GLOBAL_BEHAVIOR);
+			if (MEF_globals->read_video_indices) {
+				MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, VIDEO_INDICES_FILE_TYPE_STRING);
+				segment->video_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, USE_GLOBAL_BEHAVIOR);
+			}
 			break;
 		default:
 			UTF8_fprintf(stderr, "Error: unrecognized type code in file \"%s\" [function \"%s\", line %d]\n", full_file_name, __FUNCTION__, __LINE__);
@@ -5949,21 +6021,22 @@ SEGMENT	*read_MEF_segment(SEGMENT *segment, si1 *seg_path, si4 channel_type, si1
 			break;
 	}
 	
-	// read segment records
-	MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, RECORD_INDICES_FILE_TYPE_STRING);
-	segment->record_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
-	if (segment->record_indices_fps != NULL) {
-		// read segment record data
-		MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, RECORD_DATA_FILE_TYPE_STRING);
-		segment->record_data_fps = allocate_file_processing_struct(0, RECORD_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
-		if (read_record_data == MEF_FALSE) {
-			segment->record_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
+	// read segment records indices/data (if required and present)
+	if (MEF_globals->read_record_indices || read_record_data) {
+		MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, RECORD_INDICES_FILE_TYPE_STRING);
+		segment->record_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
+		if (segment->record_indices_fps != NULL) {
+			// read segment record data
+			MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", segment->path, segment->name, SEGMENT_DIRECTORY_TYPE_STRING, segment->name, RECORD_DATA_FILE_TYPE_STRING);
+			segment->record_data_fps = allocate_file_processing_struct(0, RECORD_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
+			if (read_record_data == MEF_FALSE) {
+				segment->record_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
+			}
+			(void) read_MEF_file(segment->record_data_fps, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
+			if (segment->record_data_fps == NULL)
+				UTF8_fprintf(stderr, "%s() Warning: Segment record indices file, but no segment record data file (\"%s\") in segment directory\n\n", __FUNCTION__, full_file_name);
 		}
-		(void) read_MEF_file(segment->record_data_fps, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
-		if (segment->record_data_fps == NULL)
-			UTF8_fprintf(stderr, "%s() Warning: Segment record indices file, but no segment record data file (\"%s\") in segment directory\n\n", __FUNCTION__, full_file_name);
 	}
-	
 	
 	return(segment);
 }
@@ -6042,39 +6115,31 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 		stmd = session->time_series_metadata.time_series_section_2;
 		cmd3 = chan->metadata.section_3;
 		smd3 = session->time_series_metadata.section_3;
-		if (i == 0) {
-			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
-			memcpy(stmd, ctmd, METADATA_SECTION_2_BYTES);
-			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
-			if (ABS(session->earliest_start_time) > ABS(chan->earliest_start_time))
-				session->earliest_start_time = chan->earliest_start_time;
-			if (ABS(session->latest_end_time) < ABS(chan->latest_end_time))
-				session->latest_end_time = chan->latest_end_time;
-			if (chan->record_data_fps != NULL) {
-				if (session->maximum_number_of_records < chan->maximum_number_of_records)
-					session->maximum_number_of_records = chan->maximum_number_of_records;
-				if (session->maximum_record_bytes < chan->maximum_record_bytes)
-					session->maximum_record_bytes = chan->maximum_record_bytes;
-			}
-			if (strlen(session->anonymized_name) == 0)
-				MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-			else if (strcmp(session->anonymized_name, chan->anonymized_name))
-				bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-			continue;
-		}
-		// universal header
+		
+		// update session properties based on each channel
 		if (ABS(chan->earliest_start_time) < ABS(session->earliest_start_time))
 			session->earliest_start_time = chan->earliest_start_time;
 		if (ABS(chan->latest_end_time) > ABS(session->latest_end_time))
 			session->latest_end_time = chan->latest_end_time;
+		if (chan->record_data_fps != NULL) {
+			if (session->maximum_number_of_records < chan->maximum_number_of_records)
+				session->maximum_number_of_records = chan->maximum_number_of_records;
+			if (session->maximum_record_bytes < chan->maximum_record_bytes)
+				session->maximum_record_bytes = chan->maximum_record_bytes;
+		}
+		
+		// initialize the session metadata based on the first channel metadata
+		if (i == 0) {
+			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
+			memcpy(stmd, ctmd, METADATA_SECTION_2_BYTES);
+			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
+			MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+			continue;
+		}
+
+		// anonymized_name
 		if (strcmp(session->anonymized_name, chan->anonymized_name))
 			bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-		if (chan->record_data_fps != NULL) {
-			if (chan->record_data_fps->universal_header->number_of_entries > session->maximum_number_of_records)
-				session->maximum_number_of_records = chan->record_data_fps->universal_header->number_of_entries;
-			if (chan->record_data_fps->universal_header->maximum_entry_size > session->maximum_record_bytes)
-				session->maximum_record_bytes = chan->record_data_fps->universal_header->maximum_entry_size;
-		}
 		// section 1
 		if (smd1->section_2_encryption != cmd1->section_2_encryption)
 			smd1->section_2_encryption = ENCRYPTION_LEVEL_NO_ENTRY;
@@ -6110,13 +6175,13 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 		if (ctmd->units_conversion_factor != stmd->units_conversion_factor)
 			stmd->units_conversion_factor = TIME_SERIES_METADATA_UNITS_CONVERSION_FACTOR_NO_ENTRY;
 		if (strcmp(ctmd->units_description, stmd->units_description))
-                	bzero(stmd->units_description, TIME_SERIES_METADATA_UNITS_DESCRIPTION_BYTES);
+			bzero(stmd->units_description, TIME_SERIES_METADATA_UNITS_DESCRIPTION_BYTES);
 		if (ctmd->maximum_native_sample_value > stmd->maximum_native_sample_value)
 			stmd->maximum_native_sample_value = ctmd->maximum_native_sample_value;
 		if (ctmd->minimum_native_sample_value < stmd->minimum_native_sample_value)
 			stmd->minimum_native_sample_value = ctmd->minimum_native_sample_value;
-                if (ctmd->start_sample < stmd->start_sample)
-                        stmd->start_sample = ctmd->start_sample;
+		if (ctmd->start_sample < stmd->start_sample)
+			stmd->start_sample = ctmd->start_sample;
 		if (ctmd->number_of_samples > stmd->number_of_samples)
 			stmd->number_of_samples = ctmd->number_of_samples;
 		if (ctmd->number_of_blocks > stmd->number_of_blocks)
@@ -6181,39 +6246,31 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 		svmd = session->video_metadata.video_section_2;
 		cmd3 = chan->metadata.section_3;
 		smd3 = session->time_series_metadata.section_3;
-		if (i == 0) {
-			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
-			memcpy(svmd, cvmd, METADATA_SECTION_2_BYTES);
-			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
-			if (ABS(session->earliest_start_time) > ABS(chan->earliest_start_time))
-				session->earliest_start_time = chan->earliest_start_time;
-			if (ABS(session->latest_end_time) < ABS(chan->latest_end_time))
-				session->latest_end_time = chan->latest_end_time;
-			if (chan->record_data_fps != NULL) {
-				if (session->maximum_number_of_records < chan->maximum_number_of_records)
-					session->maximum_number_of_records = chan->maximum_number_of_records;
-				if (session->maximum_record_bytes < chan->maximum_record_bytes)
-					session->maximum_record_bytes = chan->maximum_record_bytes;
-			}
-			if (strlen(session->anonymized_name) == 0)
-				MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-			else if (strcmp(session->anonymized_name, chan->anonymized_name))
-				bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-			continue;
-		}
-		// universal header
+		
+		// update session properties based on each channel
 		if (ABS(chan->earliest_start_time) < ABS(session->earliest_start_time))
 			session->earliest_start_time = chan->earliest_start_time;
 		if (ABS(chan->latest_end_time) > ABS(session->latest_end_time))
 			session->latest_end_time = chan->latest_end_time;
+		if (chan->record_data_fps != NULL) {
+			if (session->maximum_number_of_records < chan->maximum_number_of_records)
+				session->maximum_number_of_records = chan->maximum_number_of_records;
+			if (session->maximum_record_bytes < chan->maximum_record_bytes)
+				session->maximum_record_bytes = chan->maximum_record_bytes;
+		}
+		
+		// initialize the session metadata based on the first channel metadata
+		if (i == 0) {
+			memcpy(smd1, cmd1, METADATA_SECTION_1_BYTES);
+			memcpy(svmd, cvmd, METADATA_SECTION_2_BYTES);
+			memcpy(smd3, cmd3, METADATA_SECTION_3_BYTES);
+			MEF_strncpy(session->anonymized_name, chan->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+			continue;
+		}
+		
+		// anonymized_name
 		if (strcmp(session->anonymized_name, chan->anonymized_name))
 			bzero(session->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
-		if (chan->record_data_fps != NULL) {
-			if (chan->record_data_fps->universal_header->number_of_entries > session->maximum_number_of_records)
-				session->maximum_number_of_records = chan->record_data_fps->universal_header->number_of_entries;
-			if (chan->record_data_fps->universal_header->maximum_entry_size > session->maximum_record_bytes)
-				session->maximum_record_bytes = chan->record_data_fps->universal_header->maximum_entry_size;
-		}
 		// section 1
 		if (smd1->section_2_encryption != cmd1->section_2_encryption)
 			smd1->section_2_encryption = ENCRYPTION_LEVEL_NO_ENTRY;
@@ -6243,7 +6300,7 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 		if (cvmd->maximum_clip_bytes > svmd->maximum_clip_bytes)
 			svmd->maximum_clip_bytes = cvmd->maximum_clip_bytes;
 		if (strcmp(cvmd->video_format, svmd->video_format))
-                	bzero(svmd->video_format, VIDEO_METADATA_VIDEO_FORMAT_BYTES);
+            bzero(svmd->video_format, VIDEO_METADATA_VIDEO_FORMAT_BYTES);
 		if (svmd->video_file_CRC != cvmd->video_file_CRC)
 			svmd->video_file_CRC = CRC_NO_ENTRY;
 		if (memcmp(cvmd->protected_region, svmd->protected_region, VIDEO_METADATA_SECTION_2_PROTECTED_REGION_BYTES))
@@ -6273,33 +6330,30 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 			bzero(smd3->discretionary_region, METADATA_SECTION_3_DISCRETIONARY_REGION_BYTES);
 	}
 
-	// read session record indices if present
-	MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", session->path, session->name, SESSION_DIRECTORY_TYPE_STRING, session->name, RECORD_INDICES_FILE_TYPE_STRING);
-	session->record_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
-    if (session->record_indices_fps != NULL) {
-		if (password_data == NULL)
-			password_data = session->record_indices_fps->password_data;
-		// copy level UUID
-		memcpy(session->level_UUID, session->record_indices_fps->universal_header->level_UUID, UUID_BYTES);
-        // read session records data
-        MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", session->path, session->name, SESSION_DIRECTORY_TYPE_STRING, session->name, RECORD_DATA_FILE_TYPE_STRING);
-        session->record_data_fps = allocate_file_processing_struct(0, RECORD_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
-        if (read_record_data == MEF_FALSE) {
-                session->record_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
-        }
-        (void) read_MEF_file(session->record_data_fps, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
-        if (session->record_data_fps == NULL)
-            UTF8_fprintf(stderr, "%s() Warning: Session record indices file, but no session records data file (\"%s\") in session directory\n\n", __FUNCTION__, full_file_name);
-		
-		if (session->record_data_fps->universal_header->number_of_entries > session->maximum_number_of_records)
-			session->maximum_number_of_records = session->record_data_fps->universal_header->number_of_entries;
-		if (session->maximum_record_bytes < session->record_data_fps->universal_header->maximum_entry_size)
-			session->maximum_record_bytes = session->record_data_fps->universal_header->maximum_entry_size;
-		if (ABS(session->record_data_fps->universal_header->start_time) < ABS(session->earliest_start_time))
-			session->earliest_start_time = session->record_data_fps->universal_header->start_time;
-		if (ABS(session->latest_end_time) < session->record_data_fps->universal_header->end_time)
-			session->latest_end_time = session->record_data_fps->universal_header->end_time;
-		MEF_strncpy(session->anonymized_name, session->record_data_fps->universal_header->anonymized_name, UNIVERSAL_HEADER_ANONYMIZED_NAME_BYTES);
+	// read session records indices/data (if required and present)
+	if (MEF_globals->read_record_indices || read_record_data) {
+		MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", session->path, session->name, SESSION_DIRECTORY_TYPE_STRING, session->name, RECORD_INDICES_FILE_TYPE_STRING);
+		session->record_indices_fps = read_MEF_file(NULL, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
+		if (session->record_indices_fps != NULL) {
+			if (password_data == NULL)
+				password_data = session->record_indices_fps->password_data;
+			// copy level UUID
+			memcpy(session->level_UUID, session->record_indices_fps->universal_header->level_UUID, UUID_BYTES);
+			// read session records data
+			MEF_snprintf(full_file_name, MEF_FULL_FILE_NAME_BYTES, "%s/%s.%s/%s.%s", session->path, session->name, SESSION_DIRECTORY_TYPE_STRING, session->name, RECORD_DATA_FILE_TYPE_STRING);
+			session->record_data_fps = allocate_file_processing_struct(0, RECORD_DATA_FILE_TYPE_CODE, NULL, NULL, 0);
+			if (read_record_data == MEF_FALSE) {
+					session->record_data_fps->directives.io_bytes = UNIVERSAL_HEADER_BYTES;
+			}
+			(void) read_MEF_file(session->record_data_fps, full_file_name, password, password_data, NULL, RETURN_ON_FAIL | SUPPRESS_ERROR_OUTPUT);
+			if (session->record_data_fps == NULL)
+				UTF8_fprintf(stderr, "%s() Warning: Session record indices file, but no session records data file (\"%s\") in session directory\n\n", __FUNCTION__, full_file_name);
+			
+			if (session->record_data_fps->universal_header->number_of_entries > session->maximum_number_of_records)
+				session->maximum_number_of_records = session->record_data_fps->universal_header->number_of_entries;
+			if (session->maximum_record_bytes < session->record_data_fps->universal_header->maximum_entry_size)
+				session->maximum_record_bytes = session->record_data_fps->universal_header->maximum_entry_size;
+		}
 	}
 	
 	if (MEF_globals->verbose == MEF_TRUE) {
@@ -6320,7 +6374,6 @@ SESSION	*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSW
 			free_file_processing_struct(temp_fps);
 		}
 	}
-
 	
 	return(session);
 }
@@ -6613,8 +6666,11 @@ void 	RED_decode(RED_PROCESSING_STRUCT *rps)
 	} else if (block_header->flags & RED_LEVEL_2_ENCRYPTION_MASK) {
 		rps->directives.encryption_level = LEVEL_2_ENCRYPTION;
 		key = rps->password_data->level_2_encryption_key;
-	} else
+	} else {
 		rps->directives.encryption_level = NO_ENCRYPTION;
+		key = NULL;
+	}
+	
 	if (rps->directives.encryption_level > NO_ENCRYPTION) {
 		if (rps->password_data->access_level >= rps->directives.encryption_level) {
 			AES_decrypt(block_header->statistics, block_header->statistics, NULL, key);
@@ -6659,13 +6715,19 @@ void 	RED_decode(RED_PROCESSING_STRUCT *rps)
 	low_bound = in_byte >> (8 - EXTRA_BITS);
 	range = (ui4) 1 << EXTRA_BITS;
 	ui4_p2 = cumulative_counts + 256;
-	for (i = block_header->difference_bytes; i--;) {
-                while (range <= BOTTOM_VALUE) {
+	for (i = block_header->difference_bytes; i--;) { 
+		while (range <= BOTTOM_VALUE) {
 			low_bound = (low_bound << 8) | ((in_byte << EXTRA_BITS) & 0xff);
-                        in_byte = *ib_p++;
-                        low_bound |= in_byte >> (8 - EXTRA_BITS);
-                        range <<= 8;
-                }
+			// check to see if we are still within the bounds of the compressed data
+			// this check prevents an issue of buffer-overrun upon reading data
+			if ((ib_p - ((ui1*)rps->block_header)) <= (block_header->block_bytes - 1))
+				in_byte = *ib_p++;
+			else
+				in_byte = 0; // give it a dummy byte, since there is no more data in the block.
+			low_bound |= in_byte >> (8 - EXTRA_BITS);			
+			range <<= 8;
+          
+		}
 		temp_ui4 = low_bound / (range_per_count = range / scaled_total_counts);
 		cc = (temp_ui4 >= scaled_total_counts ? (scaled_total_counts - 1) : temp_ui4);
 		if (cc > cumulative_counts[128]) {
@@ -6764,7 +6826,7 @@ si4	*RED_detrend(RED_PROCESSING_STRUCT *rps, si4 *input_buffer, si4 *output_buff
 }
 
 
-inline void	RED_encode(RED_PROCESSING_STRUCT *rps)
+void	RED_encode(RED_PROCESSING_STRUCT *rps)
 {
 	// RED compress from original_ptr to block_header pointer (compressed data array)
 	
@@ -7443,7 +7505,7 @@ inline RED_BLOCK_HEADER	*RED_update_RPS_pointers(RED_PROCESSING_STRUCT *rps, ui1
 /*************************************************************************/
 
 
-si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_frequency, sf8 *template)
+si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_frequency, sf8 *template_array)
 {
         FILT_PROCESSING_STRUCT	*filtps;
         si8			i, j, si8_curr_samp, leftovers, median_pt;
@@ -7464,8 +7526,8 @@ si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_f
         template_len = (si4) (sf8_template_len + 0.5);
         n_waveforms = (si4) ((sf8) n_samps / sf8_template_len);
         point_arrays = (sf8 *) e_calloc((size_t) template_len * n_waveforms, sizeof(sf8), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
-	if (template == NULL) {
-                template = (sf8 *) e_calloc((size_t) template_len, sizeof(sf8), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
+	if (template_array == NULL) {
+                template_array = (sf8 *) e_calloc((size_t) template_len, sizeof(sf8), __FUNCTION__, __LINE__, USE_GLOBAL_BEHAVIOR);
 		free_template = MEF_TRUE;
 	} else {
 		free_template = MEF_FALSE;
@@ -7494,7 +7556,7 @@ si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_f
         median_pt = n_waveforms / 2;
         pa = point_arrays + median_pt;
         for (i = 0; i < template_len; ++i) {
-                template[i] = *pa;
+                template_array[i] = *pa;
                 pa += n_waveforms;
         }
 	
@@ -7503,22 +7565,22 @@ si4	remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_f
 	si8_curr_samp = 0;
         for  (i = 0; i < n_waveforms; ++i) {
                 for (j = 0; j < template_len; ++j, ++si8_curr_samp)
-                        data[si8_curr_samp] = RED_round((sf8) data[si8_curr_samp] - template[j]);
+                        data[si8_curr_samp] = RED_round((sf8) data[si8_curr_samp] - template_array[j]);
                 sf8_curr_samp += sf8_template_len;
 		if (si8_curr_samp < (si8) (sf8_curr_samp + 0.5)) {
-                        data[si8_curr_samp] -= template[0];
+                        data[si8_curr_samp] -= template_array[0];
 			++si8_curr_samp;
 		}
         }
         leftovers = n_samps - ++si8_curr_samp;
         for (i = 0; i < leftovers; ++i, si8_curr_samp++)
-                data[si8_curr_samp] = RED_round((sf8) data[si8_curr_samp] - template[i]);
+                data[si8_curr_samp] = RED_round((sf8) data[si8_curr_samp] - template_array[i]);
 	
         // clean up
         free(point_arrays);
         FILT_free_processing_struct(filtps, MEF_FALSE, MEF_FALSE);
         if (free_template == MEF_TRUE)
-                free(template);
+                free(template_array);
         
         
         return(template_len);
@@ -7597,16 +7659,18 @@ void	remove_line_noise_adaptive(si4 *data, si8 n_samps, sf8 sampling_frequency, 
 
 inline void	remove_recording_time_offset(si8 *time)
 {
-        if (*time == UUTC_NO_ENTRY)
-                return;
-	
-	if (*time > 0)  // positive times indicate recording time offset not applied, 0 - unlikely any records started at 1970.
+	if (*time == UUTC_NO_ENTRY)
 		return;
-	
-	// remove recording time offset & make positive to indicate removal
-	*time = (-*time) + MEF_globals->recording_time_offset;
-	
-	
+
+	if (*time >= 0)  // 0 and positive times indicate recording time offset not applied
+		return;
+
+	// remove recording time offset (on valid offset entry) and make positive to indicate removal
+	if (MEF_globals->recording_time_offset == METADATA_RECORDING_TIME_OFFSET_NO_ENTRY)
+		*time = -(*time);
+	else
+		*time = (-*time) + MEF_globals->recording_time_offset;
+
 	return;
 }
 

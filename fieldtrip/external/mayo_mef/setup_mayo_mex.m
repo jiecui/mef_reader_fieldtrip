@@ -71,14 +71,10 @@ function setup_mayo_mex(options)
         addpath(genpath(dhn_root))
         med_mex_path = fullfile(dhn_root, 'read_MED', 'Resources');
     else
-        ft_warning('MAYO_MEF:setup_mayo_mex', ...
+        warning('MAYO_MEF:setup_mayo_mex', ...
             'DHN root directory %s does not exist. please install read_MED package (http://darkhorseneuro.com) or manually set DHN root directory\n', dhn_root)
         med_mex_path = string(1, 0);
     end % if
-
-    % install mayo_mef package
-    % ------------------------
-    ft_hastoolbox('mayo_mef', 1);
 
     % get current directory
     % ---------------------
@@ -98,7 +94,7 @@ function setup_mayo_mex(options)
         cd(mef_mex_path)
         make_mex_mef
     else % check mex files in mayo_mef
-        valid_mex = check_mex_files(mayo_mef, MexType = "MEF");
+        valid_mex = check_mex_files(mayo_mef, 'MexType', 'MEF');
 
         if valid_mex == false
             cd(mef_mex_path)
@@ -116,10 +112,10 @@ function setup_mayo_mex(options)
         fprintf('***************************\n')
 
         % check mex files in read_MED
-        valid_mex = check_mex_files(med_mex_path, MexType = 'MED');
+        valid_mex = check_mex_files(med_mex_path, 'MexType', 'MED');
 
         if valid_mex == false
-            ft_warning('MAYO_MEF:setup_mayo_mex', ...
+            warning('MAYO_MEF:setup_mayo_mex', ...
             'None or not all MED mex files can be found. Please install read_MED package (http://darkhorseneuro.com) or manually set DHN root directory\n')
         end % if
 
@@ -160,7 +156,7 @@ function valid_mex = check_mex_files(mex_path, options)
             if valid_mex
                 fprintf('MEF mex files are found.\n')
             else
-                ft_warning('None or not all MEF mex files can be found.\n')
+                warning('None or not all MEF mex files can be found.')
             end % if
 
         case 'MED'
@@ -173,7 +169,7 @@ function valid_mex = check_mex_files(mex_path, options)
             if valid_mex
                 fprintf('MED mex files are found.\n')
             else
-                ft_warning('None or not all MED mex files can be found.\n')
+                warning('None or not all MED mex files can be found.')
             end % if
 
     end % switch

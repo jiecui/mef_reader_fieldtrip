@@ -29,8 +29,8 @@ function [sess_info, unit] = get_info_data(this)
     %
     % See also MEFSession_3p0, get_sessinfo.
 
-    % Copyright 2020 Richard J. Cui. Created: Fri 01/03/2020  4:19:10.683 PM
-    % $ Revision: 0.4 $  $ Date: Wed 02/22/2023 10:27:45.679 PM $
+    % Copyright 2020-2025 Richard J. Cui. Created: Fri 01/03/2020  4:19:10.683 PM
+    % $ Revision: 0.5 $  $ Date: Tue 09/09/2025 14:30:50.888 PM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -52,8 +52,10 @@ function [sess_info, unit] = get_info_data(this)
     metadata = this.MetaData;
 
     if isempty(metadata)
+        fprintf('Reading session metadata... ');
         metadata = this.read_mef_session_metadata_3p0(this.SessionPath);
         this.MetaData = metadata;
+        fprintf('Done.\n');
     end % if
 
     num_chan = metadata.number_of_time_series_channels; % number of channels
@@ -70,7 +72,10 @@ function [sess_info, unit] = get_info_data(this)
         sess_info = table('size', sz, 'VariableTypes', var_types, ...
             'VariableNames', var_names);
 
+        fprintf('Reading information of %d channels... ', num_chan);
+
         for k = 1:num_chan
+            fprintf('%d ', k);
             tsc_k = ts_channel(k); % kth channel of time series
             fn_k = [tsc_k.name, '.', tsc_k.extension]; % channel name
             % header info
@@ -110,6 +115,8 @@ function [sess_info, unit] = get_info_data(this)
             % continuity table
             sess_info.Continuity{k} = seg_cont_k;
         end % for
+
+        fprintf('Done.\n');
 
     end % if
 

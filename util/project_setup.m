@@ -15,8 +15,8 @@ function varargout = project_setup(proj_root, options)
     %
     % See also .
 
-    % 2022 Richard J. Cui. Created: Sun 07/22/2023  4:04:40.660 PM
-    % $Revision: 0.5 $  $Date: Mon 10/09/2023 08:35:28.664 PM $
+    % 2022-2025 Richard J. Cui. Created: Sun 07/22/2023  4:04:40.660 PM
+    % $Revision: 0.6 $  $Date: Tue 09/09/2025 09:57:27.694 AM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -46,7 +46,7 @@ function varargout = project_setup(proj_root, options)
     fprintf('adding directories to project path...\n');
     cd(proj_root)
     addpath(genpath('./analysis'))
-    addpath(genpath('../proj_util'))
+    addpath(genpath('../../proj_util'))
     % * add fieldtrip
     % fprintf('adding fieldtrip root directory...\n')
     % ft_home = '../../../../ComputationalToolbox/neurophysiology_signals_analysis/fieldtrip';
@@ -55,11 +55,14 @@ function varargout = project_setup(proj_root, options)
 
     % * add DHN
     fprintf('adding Dark hourse neuron...\n')
-    dhn_root = fullfile(filesep, 'Users', getenv('USER'), 'DHN');
     sys_loc = get_system_loc();
 
     switch sys_loc
         case "cortex"
+            dhn_root = fullfile(filesep, 'Users', getenv('USER'), 'DHN');
+            addpath(genpath(dhn_root))
+        case "R5504550"
+            dhn_root = fullfile(getenv('USERPROFILE'), 'DHN');
             addpath(genpath(dhn_root))
         otherwise
             cprintf('[1 .5 0]', 'Warning: Dark hourse neuron is not known on %s.\n', sys_loc)

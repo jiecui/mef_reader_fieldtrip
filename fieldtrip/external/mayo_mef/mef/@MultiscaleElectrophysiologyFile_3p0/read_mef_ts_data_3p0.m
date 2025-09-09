@@ -83,7 +83,6 @@ function data = read_mef_ts_data_3p0(this, channel_path, varargin)
 
     if strcmpi(rtype, 'samples') == true && begin ~= -1
         begin = begin - 1; % change to python convention
-        stop = stop - 1;
     end % if
 
     % ======================================================================

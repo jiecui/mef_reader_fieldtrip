@@ -98,7 +98,7 @@ classdef MEFSession_3p0 < MEFSession & MultiscaleElectrophysiologyFile_3p0
                 this.setSessionInfo(sesspath, password, sortchannel);
             end % if
 
-            if ~isempty(channames) && numel(channames) == 1
+            if ~isempty(channames) && isscalar(channames)
                 this.SelectedChannel = channames;
             else
                 this.SelectedChannel = this.ChannelName;

@@ -19,8 +19,8 @@ function [path_to_sess, sess_name, sess_ext] = get_sess_parts(this, sess_path)
     %
     % See also .
 
-    % Copyright 2023 Richard J. Cui. Created: Tue 02/21/2023 10:47:52.431 PM
-    % $Revision: 0.1 $  $Date: Tue 02/21/2023 10:47:52.436 PM $
+    % Copyright 2023-2025 Richard J. Cui. Created: Tue 02/21/2023 10:47:52.431 PM
+    % $Revision: 0.2 $  $Date: Tue 09/09/2025 10:47:52.436 PM $
     %
     % Rocky Creek Dr. NE
     % Rochester, MN 55906, USA
@@ -39,6 +39,10 @@ function [path_to_sess, sess_name, sess_ext] = get_sess_parts(this, sess_path)
     % main
     % ======================================================================
     [path_to_sess, sess_name, sess_ext] = fileparts(sess_path);
+
+    if isempty(path_to_sess)
+        path_to_sess = pwd;
+    end
 
     % update session info
     % -------------------

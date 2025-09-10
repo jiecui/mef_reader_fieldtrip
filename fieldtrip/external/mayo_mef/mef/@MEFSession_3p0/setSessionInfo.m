@@ -50,17 +50,10 @@ function metadata = setSessionInfo(this, varargin)
     this.SessionPath = sesspath; % set session path directory
     this.Password = password; % set password
     this.get_sess_parts;
-    this.get_sessinfo;
+    this.get_sessinfo; % get metadata
 
     % the names in property ChannelName
     metadata = this.MetaData;
-
-    if isempty(metadata)
-        fprintf('Reading session metadata... ');
-        metadata = this.read_mef_session_metadata_3p0(this.SessionPath);
-        this.MetaData = metadata;
-        fprintf('Done.\n');
-    end % if
 
     if strcmpi(sort_channel, 'number')
         % sort the order of time_series_channels according to

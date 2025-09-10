@@ -80,7 +80,7 @@ default_pw = struct([]); % password
 p = inputParser;
 p.addRequired('this', @isobject);
 p.addRequired('begin_stop', @(x) isnumeric(x) & numel(x) == 2 & x(1) <= x(2));
-p.addRequired('bs_unit', @isstr);
+p.addRequired('bs_unit', @ischar);
 p.addRequired('sel_chan', @isstring) % must be string array
 p.addOptional('pw', default_pw, @isstruct);
 

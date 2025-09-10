@@ -44,10 +44,10 @@ classdef MultiscaleElectrophysiologyFile_3p0 < MultiscaleElectrophysiologyFile
     % MEF file info
     % -------------
     properties (SetAccess = protected, Hidden = true)
-        Level1Password % [str] level 1 password
-        Level2Password % [str] level 2 password
-        AccessLevel % [num] access level of data
-        Channel % [struct] channel information structure
+        Level1Password (1, :) char % [str] level 1 password
+        Level2Password (1, :) char % [str] level 2 password
+        AccessLevel (1, 1) double % [num] access level of data
+        Channel (1, 1) struct % [struct] channel information structure
     end
 
     % ======================================================================

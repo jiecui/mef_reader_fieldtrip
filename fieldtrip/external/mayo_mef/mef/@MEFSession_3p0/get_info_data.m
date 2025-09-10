@@ -54,6 +54,7 @@ function [sess_info, unit] = get_info_data(this)
     if isempty(metadata)
         fprintf('Reading session metadata... ');
         metadata = this.read_mef_session_metadata_3p0(this.SessionPath);
+        metadata = get_header_info(this, metadata); % TODO: get header info
         this.MetaData = metadata;
         fprintf('Done.\n');
     end % if
@@ -68,7 +69,6 @@ function [sess_info, unit] = get_info_data(this)
         sz = [num_chan, numel(var_names)];
         fp = this.SessionPath; % session path of channels
         ts_channel = metadata.time_series_channels; % structure of time-series channel
-        pw = this.processPassword(this.Password); % password
         sess_info = table('size', sz, 'VariableTypes', var_types, ...
             'VariableNames', var_names);
 
@@ -79,7 +79,7 @@ function [sess_info, unit] = get_info_data(this)
             tsc_k = ts_channel(k); % kth channel of time series
             fn_k = [tsc_k.name, '.', tsc_k.extension]; % channel name
             % header info
-            header_k = this.readHeader(fullfile(fp, fn_k), pw);
+            header_k = tsc_k.header;
             mef_ver = sprintf('%d.%d', header_k.mef_version_major, ...
                 header_k.mef_version_minor);
             % analysis discountinuity
@@ -121,5 +121,29 @@ function [sess_info, unit] = get_info_data(this)
     end % if
 
 end
+
+% ==========================================================================
+% subroutines
+% ==========================================================================
+function metadata = get_header_info(this, metadata)
+    % get header info
+
+    arguments
+        this (1, 1) MEFSession_3p0
+        metadata (1, 1) struct
+    end % arguments
+
+    fp = this.SessionPath; % session path of channels
+    pw = this.processPassword(this.Password); % password
+    ts_channel = metadata.time_series_channels; % structure of time-series channel
+    ch_names = {ts_channel.name}; % channel names
+
+    for k = 1:numel(ch_names)
+        fn_k = [ch_names{k}, '.', ts_channel(k).extension]; % channel name
+        header_k = this.readHeader(fullfile(fp, fn_k), pw);
+        metadata.time_series_channels(k).header = header_k;
+    end % for
+
+end % function
 
 % [EOF]

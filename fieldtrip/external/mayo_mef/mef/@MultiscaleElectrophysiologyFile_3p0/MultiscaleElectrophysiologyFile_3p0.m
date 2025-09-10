@@ -153,12 +153,12 @@ classdef MultiscaleElectrophysiologyFile_3p0 < MultiscaleElectrophysiologyFile
     % other metheds
     % -------------
     methods
-        [header, channel] = readHeader(this, varargin) % read universal head and channel metadata of MEF 3.0
-        bid = readBlockIndexData(this, varargin) % read block indices
-        seg_cont = analyzeContinuity(this, varargin) % analyze continuity of data sampling
-        [x, t, t_uutc] = importSignal(this, varargin) % input MEF 3.0 time series channel
-        data = read_mef_ts_data_3p0(this, channel_path, varargin) % lower level of inputing channel data
-        pw = processPassword(this, varargin) % process MEF 3.0 password
+        varargout = readHeader(this, varargin) % read universal head and channel metadata of MEF 3.0
+        varargout = readBlockIndexData(this, varargin) % read block indices
+        varargout = analyzeContinuity(this, varargin) % analyze continuity of data sampling
+        varargout = importSignal(this, varargin) % input MEF 3.0 time series channel
+        varargout = read_mef_ts_data_3p0(this, varargin) % lower level of inputing channel data
+        varargout = processPassword(this, varargin) % process MEF 3.0 password
     end % methods
 
 end

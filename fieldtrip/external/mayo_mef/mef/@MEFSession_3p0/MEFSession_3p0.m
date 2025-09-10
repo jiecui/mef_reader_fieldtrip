@@ -117,13 +117,13 @@ classdef MEFSession_3p0 < MEFSession & MultiscaleElectrophysiologyFile_3p0
     % other methods
     % -------------
     methods
-        [sess_info, unit] = get_info_data(this) % get session info data of MEF 3.0
-        [sesspath, channames] = findSessPath(this, filename) % find session path and channel name
-        metadata = read_mef_session_metadata_3p0(this, varargin) % get session metadata of MEF 3.0
-        valid_yn = checkSessValid(this, varargin) % check validity of session info
-        [X, t] = import_sess(this, varargin) % import session of MEF 3.0 data
-        metadata = setSessionInfo(this, varargin) % set session information
-        ac_num = getAcqChanNumber(this) % get acquistion channel number
+        varargout = get_info_data(this, varargin) % get session info data of MEF 3.0
+        varargout = findSessPath(this, filename) % find session path and channel name
+        varargout = read_mef_session_metadata_3p0(this, varargin) % get session metadata of MEF 3.0
+        varargout = checkSessValid(this, varargin) % check validity of session info
+        varargout = import_sess(this, varargin) % import session of MEF 3.0 data
+        varargout = setSessionInfo(this, varargin) % set session information
+        varargout = getAcqChanNumber(this) % get acquistion channel number
     end % methods
 
 end % classdef

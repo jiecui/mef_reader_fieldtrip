@@ -1,15 +1,15 @@
-function [x, t] = importSignal(this, start_end, st_unit, filepath, filename, options)
+function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filename, options)
     % MULTISCALEELECTROPHYSIOLOGYFILE_3P0.IMPORTMEF Import MEF 3.0 channel into MATLAB
     %
     % Syntax:
-    %   [x, t] = importSignal(this)
-    %   [x, t] = importSignal(__, start_end)
-    %   [x, t] = importSignal(__, start_end, st_unit)
-    %   [x, t] = importSignal(__, start_end, st_unit, filepath)
-    %   [x, t] = importSignal(__, start_end, st_unit, filepath, filename)
-    %   [x, t] = importSignal(__, 'Level1Password', level_1_pw)
-    %   [x, t] = importSignal(__, 'Level2Password', level_2_pw)
-    %   [x, t] = importSignal(__, 'AccessLevel', access_level)
+    %   [x, t, t_uutc] = importSignal(this)
+    %   [x, t, t_uutc] = importSignal(__, start_end)
+    %   [x, t, t_uutc] = importSignal(__, start_end, st_unit)
+    %   [x, t, t_uutc] = importSignal(__, start_end, st_unit, filepath)
+    %   [x, t, t_uutc] = importSignal(__, start_end, st_unit, filepath, filename)
+    %   [x, t, t_uutc] = importSignal(__, 'Level1Password', level_1_pw)
+    %   [x, t, t_uutc] = importSignal(__, 'Level2Password', level_2_pw)
+    %   [x, t, t_uutc] = importSignal(__, 'AccessLevel', access_level)
     %
     % Imput(s):
     %   this            - [obj] MultiscaleElectrophysiologyFile object
@@ -27,7 +27,8 @@ function [x, t] = importSignal(this, start_end, st_unit, filepath, filename, opt
     %
     % Output(s):
     %   x               - [num array] extracted signal
-    %   t               - [num array] time indices of the signal in the file
+    %   t               - [num array] sample indices of the signal in the file
+    %   t_uutc          - [num array] uUTC time of the signal in the file
     %
     % Note:
     %   Import data from one channel of MEF 3.0 file into MatLab.
@@ -128,14 +129,17 @@ function [x, t] = importSignal(this, start_end, st_unit, filepath, filename, opt
     switch lower(st_unit)
         case 'index'
             se_index = start_end;
+            se_yn = true(1, 2);
         otherwise
-            se_index = this.SampleTime2Index(start_end, st_unit);
+            [se_index, se_yn, se_uutc] = this.SampleTime2Index(start_end, st_unit);
     end % switch
 
     if isempty(start_end) == true
-        start_ind = this.SampleTime2Index(this.Channel.earliest_start_time);
-        end_ind = this.SampleTime2Index(this.Channel.latest_end_time);
+        [start_ind, start_yn, start_uutc] = this.SampleTime2Index(this.Channel.earliest_start_time);
+        [end_ind, end_yn, end_uutc] = this.SampleTime2Index(this.Channel.latest_end_time);
         se_index = [start_ind, end_ind];
+        se_yn = [start_yn, end_yn];
+        se_uutc = [start_uutc, end_uutc];
     end % if
 
     % check
@@ -143,13 +147,19 @@ function [x, t] = importSignal(this, start_end, st_unit, filepath, filename, opt
         se_index(1) = 1;
         warning('MultiscaleElectrophysiologyFile_3p0:ImportSignal:discardSample', ...
         'Reqested data samples before the recording are discarded')
+        se_yn(1) = true;
+        se_uutc(1) = this.Continuity.SampleTimeStart(1);
     end % if
 
     if se_index(2) > this.Channel.metadata.section_2.number_of_samples
         se_index(2) = this.Channel.metadata.section_2.number_of_samples;
         warning('MultiscaleElectrophysiologyFile_3p0:ImportSignal:discardSample', ...
         'Reqested data samples after the recording are discarded')
+        se_yn(2) = true;
+        se_uutc(2) = this.Continuity.SampleTimeEnd(end);
     end % if
+
+    [se_index, t_index, t_uutc] = adjust_se_index(this, se_index, se_yn, se_uutc);
 
     % verbose
     % -------
@@ -174,7 +184,11 @@ function [x, t] = importSignal(this, start_end, st_unit, filepath, filename, opt
     x = double(x(:)).'; % change to row vector
     % find the indices corresponding to physically collected data
     if nargout == 2
-        t = se_index(1):se_index(2);
+        t = t_index;
+    end % if
+
+    if nargout == 3
+        t = t_uutc;
     end % if
 
     if verbo, fprintf('Done!\n'), end % if
@@ -184,6 +198,60 @@ end
 % ==========================================================================
 % subroutines
 % ==========================================================================
+function [se_out, t_index, t_uutc] = adjust_se_index(this, se_in, se_yn, se_uutc)
+    % adjust start and end index to physically collected data
+
+    arguments
+        this (1, 1) MultiscaleElectrophysiologyFile_3p0
+        se_in(1, 2) double {mustStartLessThanOrEqualEnd} % [start, end] index of the signal to be extracted
+        se_yn (1, 2) logical % whether the start and end index are adjusted
+        se_uutc (1, 2) double % [start, end] time in uUTC
+    end % arguments
+
+    % get sample start and end indexes
+    % --------------------------------
+    cont = this.Continuity;
+
+    if se_yn(1) == false
+        % adjust the start index to the start of the previous block
+        fprintf('Warning: the start time %d in uUTC is not available\n', se_uutc(1))
+        blk_index = find(cont.SampleTimeStart <= se_uutc(1), 1, 'last');
+
+        if isempty(blk_index)
+            blk_index = 1;
+        end % if
+
+        se_in(1) = cont.SampleIndexStart(blk_index);
+
+    end % if
+
+    if se_yn(2) == false
+        % adjust the end index to the end of the next block
+        fprintf('Warning: the end time %d in uUTC is not available\n', se_uutc(2))
+        blk_index = find(cont.SampleTimeEnd >= se_uutc(2), 1, 'first');
+
+        if isempty(blk_index)
+            blk_index = height(cont);
+        end % if
+
+        se_in(2) = cont.SampleIndexEnd(blk_index);
+
+    end % if
+
+    se_out = se_in;
+
+    % get sample uUTC timepoints
+    % --------------------------
+    x = [cont.SampleIndexStart; cont.SampleIndexEnd];
+    y = [cont.SampleTimeStart; cont.SampleTimeEnd];
+    [x, ind] = sort(x);
+    y = y(ind);
+    t_index = se_out(1):se_out(2);
+    t_uutc = interp1(x, y, t_index, 'linear', 'extrap');
+    t_uutc = round(t_uutc); % round to the nearest uUTC
+
+end % function
+
 function mustStartLessThanOrEqualEnd(x)
 
     if x(1) > x(2)

@@ -132,6 +132,17 @@ function seg_cont = analyzeContinuity(this, bid)
 
     seg_cont = array2table(chunk_cont, 'VariableNames', var_names);
 
+    % * correct the sample index to absolute sample index
+    n_segs = length(unique(seg_cont.SegmentStart)); % number of segments
+
+    for k = 2:n_segs
+        seg_ind_end_k_1 = seg_cont.SampleIndexEnd(seg_cont.SegmentEnd == k - 1);
+        sample_ind_k_1 = seg_ind_end_k_1(end);
+
+        seg_cont(seg_cont.SegmentEnd==k,["SampleIndexStart","SampleIndexEnd"]) = ...
+            seg_cont(seg_cont.SegmentEnd==k,["SampleIndexStart","SampleIndexEnd"]) + sample_ind_k_1;
+    end % for
+
     % update
     % -------
     this.Continuity = seg_cont;

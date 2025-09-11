@@ -159,6 +159,7 @@ function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filen
         se_uutc(2) = this.Continuity.SampleTimeEnd(end);
     end % if
 
+    % find the indices corresponding to physically collected data
     [se_index, t_index, t_uutc] = adjust_se_index(this, se_index, se_yn, se_uutc);
 
     % verbose
@@ -182,7 +183,8 @@ function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filen
 
     x = this.read_mef_ts_data_3p0(wholename, pw, 'samples', se_index(1), se_index(2));
     x = double(x(:)).'; % change to row vector
-    % find the indices corresponding to physically collected data
+
+    % * TODO: add nan for missing data
     if nargout == 2
         t = t_index;
     end % if

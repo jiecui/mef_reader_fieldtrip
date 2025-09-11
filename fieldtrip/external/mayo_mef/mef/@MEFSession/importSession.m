@@ -1,4 +1,4 @@
-function [X, t, t_uutc] = importSession(this, varargin)
+function [X, t, t_unit] = importSession(this, varargin)
     % MEFSESSION.importSession import MEF session data
     %
     % Syntax:
@@ -113,7 +113,7 @@ function [X, t, t_uutc] = importSession(this, varargin)
     % input session
     % =========================================================================
     begin_stop = this.relative2absTimePoint(start_end, se_unit); % to absolute time points
-    [X, t, t_uutc] = this.import_sess(begin_stop, se_unit, sel_chan, pw);
+    [X, t, t_unit] = this.import_sess(begin_stop, se_unit, sel_chan, pw);
 
 end % function
 
@@ -136,7 +136,7 @@ function q = parseInputs(this, varargin)
     p.addOptional('start_end', default_bs, ...
         @(x) isnumeric(x) & numel(x) == 2 & x(1) <= x(2));
     p.addOptional('se_unit', default_ut, @(x) any(validatestring(x, expected_ut)));
-    p.addOptional('sess_path', default_sp, @isstr);
+    p.addOptional('sess_path', default_sp, @ischar);
     p.addParameter('SelectedChannel', default_sc, @isstring) % must be string array
     p.addParameter('Password', default_pw, @isstruct);
 

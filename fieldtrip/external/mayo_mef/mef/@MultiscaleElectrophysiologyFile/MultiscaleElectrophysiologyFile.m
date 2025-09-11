@@ -13,12 +13,12 @@ classdef MultiscaleElectrophysiologyFile < handle
     % See also .
 
     % Copyright 2020-2025 Richard J. Cui. Created: Tue 02/04/2020  2:21:31.965 PM
-    % $Revision: 0.5 $  $Date: Wed 09/10/2025 16:24:49.999 PM $
+    % $Revision: 0.6 $  $Date: Thu 09/11/2025 09:23:05.190 AM $
     %
-    % 1026 Rocky Creek Dr NE
+    % Rocky Creek Dr NE
     % Rochester, MN 55906, USA
     %
-    % Email: richard.cui@utoronto.ca
+    % Email: richard.jie.cui@gmail.com
 
     % ======================================================================
     % properties
@@ -66,12 +66,12 @@ classdef MultiscaleElectrophysiologyFile < handle
     % other metheds
     % -------------
     methods
-        sti = getSampleTimeInterval(this, varargin) % bound of sampling interval
-        [sample_index, sample_yn, sample_time] = SampleTime2Index(this, varargin) % time --> index
-        [sample_time, sample_yn] = SampleIndex2Time(this, varargin) % index --> time
-        this = setContinuity(this, cont_table) % set Continuity table
-        out_time = SampleUnitConvert(this, in_time, varargin) % convert units of time points
-        record_offset = getRecordOffset(this, unit) % get offset time of recording in specified unit
+        varargout = getSampleTimeInterval(this, varargin) % bound of sampling interval
+        varargout = SampleTime2Index(this, varargin) % time --> index
+        varargout = SampleIndex2Time(this, varargin) % index --> time
+        varargout = setContinuity(this, varargin) % set Continuity table
+        varargout = SampleUnitConvert(this, varargin) % convert units of time points
+        varargout = getRecordOffset(this, varargin) % get offset time of recording in specified unit
     end % methods
 
 end

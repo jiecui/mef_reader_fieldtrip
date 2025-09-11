@@ -1,15 +1,15 @@
-function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filename, options)
+function [x, t, t_unit] = importSignal(this, start_end, st_unit, filepath, filename, options)
     % MULTISCALEELECTROPHYSIOLOGYFILE_3P0.IMPORTMEF Import MEF 3.0 channel into MATLAB
     %
     % Syntax:
-    %   [x, t, t_uutc] = importSignal(this)
-    %   [x, t, t_uutc] = importSignal(__, start_end)
-    %   [x, t, t_uutc] = importSignal(__, start_end, st_unit)
-    %   [x, t, t_uutc] = importSignal(__, start_end, st_unit, filepath)
-    %   [x, t, t_uutc] = importSignal(__, start_end, st_unit, filepath, filename)
-    %   [x, t, t_uutc] = importSignal(__, 'Level1Password', level_1_pw)
-    %   [x, t, t_uutc] = importSignal(__, 'Level2Password', level_2_pw)
-    %   [x, t, t_uutc] = importSignal(__, 'AccessLevel', access_level)
+    %   [x, t, t_unit] = importSignal(this)
+    %   [x, t, t_unit] = importSignal(__, start_end)
+    %   [x, t, t_unit] = importSignal(__, start_end, st_unit)
+    %   [x, t, t_unit] = importSignal(__, start_end, st_unit, filepath)
+    %   [x, t, t_unit] = importSignal(__, start_end, st_unit, filepath, filename)
+    %   [x, t, t_unit] = importSignal(__, 'Level1Password', level_1_pw)
+    %   [x, t, t_unit] = importSignal(__, 'Level2Password', level_2_pw)
+    %   [x, t, t_unit] = importSignal(__, 'AccessLevel', access_level)
     %
     % Imput(s):
     %   this            - [obj] MultiscaleElectrophysiologyFile object
@@ -28,15 +28,15 @@ function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filen
     % Output(s):
     %   x               - [num array] extracted signal
     %   t               - [num array] sample indices of the signal in the file
-    %   t_uutc          - [num array] uUTC time of the signal in the file
+    %   t_unit          - [num array] timestamps in st_unit
     %
     % Note:
     %   Import data from one channel of MEF 3.0 file into MatLab.
     %
     % See also .
 
-    % Copyright 2020 Richard J. Cui. Created: Wed 02/05/2020 10:24:56.722 PM
-    % $Revision: 0.3 $  $Date: Fri 04/03/2020  5:11:57.375 PM $
+    % Copyright 2020-2025 Richard J. Cui. Created: Wed 02/05/2020 10:24:56.722 PM
+    % $Revision: 0.4 $  $Date: Thu 09/11/2025 10:30:39.673 AM $
     %
     % Multimodel Neuroimaging Lab (Dr. Dora Hermes)
     % Mayo Clinic St. Mary Campus
@@ -55,7 +55,7 @@ function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filen
 
     arguments
         start_end (1, 2) double {mustStartLessThanOrEqualEnd} = [] % [start, end] time/index of the signal to be extracted
-        st_unit (1, 1) string {mustBeMember(st_unit, {'Index', 'uUTC', 'Second', 'Minute', 'Hour', 'Day'})} = 'Index' % unit of start_end
+        st_unit (1, 1) string {mustBeMember(st_unit, {'index', 'uutc', 'second', 'minute', 'hour', 'day'})} = 'index' % unit of start_end
         filepath (1, :) char = '' % directory of the session
         filename (1, :) char = '' % filename of the channel
         options.Level1Password (1, :) char = '' % password of level 1
@@ -67,6 +67,9 @@ function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filen
     l2_pw = options.Level2Password;
     al = options.AccessLevel;
 
+    % ======================================================================
+    % main
+    % ======================================================================
     % password
     % --------
     if isempty(l1_pw)
@@ -130,6 +133,7 @@ function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filen
         case 'index'
             se_index = start_end;
             se_yn = true(1, 2);
+            se_uutc = this.SampleIndex2Time(se_index, 'uutc');
         otherwise
             [se_index, se_yn, se_uutc] = this.SampleTime2Index(start_end, st_unit);
     end % switch
@@ -160,7 +164,7 @@ function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filen
     end % if
 
     % find the indices corresponding to physically collected data
-    [se_index, t_index, t_uutc] = adjust_se_index(this, se_index, se_yn, se_uutc);
+    se_index = adjust_se_index(this, se_index, se_yn, se_uutc);
 
     % verbose
     % -------
@@ -172,9 +176,8 @@ function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filen
         verbo = false;
     end % if
 
-    % ======================================================================
     % load the data
-    % ======================================================================
+    % -------------
     if verbo
         [~, thisChannel] = fileparts(wholename);
         fprintf(['-->Loading ' thisChannel ' ...'])
@@ -185,12 +188,13 @@ function [x, t, t_uutc] = importSignal(this, start_end, st_unit, filepath, filen
     x = double(x(:)).'; % change to row vector
 
     % * TODO: add nan for missing data
-    if nargout == 2
-        t = t_index;
+    if nargout > 1
+        t = se_index(1):se_index(2);
     end % if
 
-    if nargout == 3
-        t = t_uutc;
+    if nargout > 2
+        t_unit_abs = this.SampleIndex2Time(t, st_unit);
+        t_unit = this.abs2relativeTimePoint(t_unit_abs, st_unit);
     end % if
 
     if verbo, fprintf('Done!\n'), end % if
@@ -200,7 +204,7 @@ end
 % ==========================================================================
 % subroutines
 % ==========================================================================
-function [se_out, t_index, t_uutc] = adjust_se_index(this, se_in, se_yn, se_uutc)
+function se_out = adjust_se_index(this, se_in, se_yn, se_uutc)
     % adjust start and end index to physically collected data
 
     arguments
@@ -241,16 +245,6 @@ function [se_out, t_index, t_uutc] = adjust_se_index(this, se_in, se_yn, se_uutc
     end % if
 
     se_out = se_in;
-
-    % get sample uUTC timepoints
-    % --------------------------
-    x = [cont.SampleIndexStart; cont.SampleIndexEnd];
-    y = [cont.SampleTimeStart; cont.SampleTimeEnd];
-    [x, ind] = sort(x);
-    y = y(ind);
-    t_index = se_out(1):se_out(2);
-    t_uutc = interp1(x, y, t_index, 'linear', 'extrap');
-    t_uutc = round(t_uutc); % round to the nearest uUTC
 
 end % function
 

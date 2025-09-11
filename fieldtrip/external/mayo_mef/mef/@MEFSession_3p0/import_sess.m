@@ -1,4 +1,4 @@
-function [X, t, t_uutc] = import_sess(this, varargin)
+function [X, t, t_unit] = import_sess(this, varargin)
     % MEFSESSION_3P0.IMPORT_SESS import session of MEF 3.0 data
     %
     % Syntax:
@@ -61,7 +61,7 @@ function [X, t, t_uutc] = import_sess(this, varargin)
     for k = 1:num_chan
         fprintf('%d ', k);
         fn_k = convertStringsToChars(sel_chan(k) + ".timd"); % filename of channel k
-        [x_k, t, t_uutc] = this.importSignal(begin_stop, bs_unit, sess_path, fn_k, ...
+        [x_k, t, t_unit] = this.importSignal(begin_stop, bs_unit, sess_path, fn_k, ...
             'Level1Password', pw.Level1Password, ...
             'Level2Password', pw.Level2Password, ...
             'AccessLevel', pw.AccessLevel);

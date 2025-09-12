@@ -9,7 +9,7 @@
 
 
 // Specification for Multiscale Electrophysiology Format (MEF) version 3.0
-// Copyright 2013, Mayo Foundation, Rochester MN. All rights reserved.
+// Copyright 2021, Mayo Foundation, Rochester MN. All rights reserved.
 // Written by Matt Stead, Ben Brinkmann, and Dan Crepeau.
 
 // Usage and modification of this source code is governed by the Apache 2.0 license.
@@ -67,6 +67,7 @@
 	#include <unistd.h>
 	#include <stdio.h>
 	#include <string.h>
+	#include <time.h>
 	#include <sys/time.h>
 	#include <math.h>
 	#include <float.h>
@@ -130,12 +131,12 @@
 /************************************************************************************/
 
 typedef struct {
-        // time constants
+	// time constants
 	si8	recording_time_offset;
 	ui4	recording_time_offset_mode;
 	si4	GMT_offset;
-        si8	DST_start_time;
-        si8	DST_end_time;
+	si8	DST_start_time;
+	si8	DST_end_time;
 	// alignment fields
 	si4	universal_header_aligned;
 	si4	metadata_section_1_aligned;
@@ -154,7 +155,7 @@ typedef struct {
 	sf8	*RED_normal_CDF_table;
 	// CRC
 	ui4	*CRC_table;
-        ui4	CRC_mode;
+    ui4	CRC_mode;
 	// AES tables
 	si4	*AES_sbox_table;
 	si4	*AES_rcon_table;
@@ -165,10 +166,13 @@ typedef struct {
 	// UTF8 tables
 	ui4	*UTF8_offsets_from_UTF8_table;
 	si1	*UTF8_trailing_bytes_for_UTF8_table;
-        // miscellaneous
-        si4	verbose;
-        ui4	behavior_on_fail;
-        ui4	file_creation_umask;
+    // miscellaneous
+    si4	verbose;
+    ui4	behavior_on_fail;
+    ui4	file_creation_umask;
+	si1 read_time_series_indices;
+	si1 read_video_indices;
+	si1 read_record_indices;
 } MEF_GLOBALS;
 
 
@@ -189,7 +193,7 @@ si4 	e_system(const char *command, const si1 *function, si4 line, ui4 behavior_o
 void	*e_calloc(size_t n_members, size_t size, const si1 *function, si4 line, ui4 behavior_on_fail);
 FILE	*e_fopen(si1 *path, si1 *mode, const si1 *function, si4 line, ui4 behavior_on_fail);
 size_t	e_fread(void *ptr, size_t size, size_t n_members, FILE *stream, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail);
-si4	e_fseek(FILE *stream, size_t offset, si4 whence, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail);
+si4	e_fseek(FILE *stream, si8 offset, si4 whence, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail);
 long	e_ftell(FILE *stream, const si1 *function, si4 line, ui4 behavior_on_fail);
 size_t	e_fwrite(void *ptr, size_t size, size_t n_members, FILE *stream, si1 *path, const si1 *function, si4 line, ui4 behavior_on_fail);
 void	*e_malloc(size_t n_bytes, const si1 *function, si4 line, ui4 behavior_on_fail);
@@ -215,7 +219,11 @@ void	*e_realloc(void *ptr, size_t n_bytes, const si1 *function, si4 line, ui4 be
 #define TIME_STRING_BYTES			32
 #define MEF_BASE_FILE_NAME_BYTES		256	// utf8[63]
 #define MEF_SEGMENT_BASE_FILE_NAME_BYTES	(MEF_BASE_FILE_NAME_BYTES + 8)
-#define MEF_FULL_FILE_NAME_BYTES		1024	// utf8[255]
+#ifdef _WIN32
+#define MEF_FULL_FILE_NAME_BYTES	(_MAX_PATH * 4)
+#else
+#define MEF_FULL_FILE_NAME_BYTES	(PATH_MAX * 4)
+#endif
 #define PAD_BYTE_VALUE				0x7e	// ascii tilde ("~")
 #define FILE_NUMBERING_DIGITS			6
 #define NO_TYPE_CODE				0
@@ -554,7 +562,6 @@ void	*e_realloc(void *ptr, size_t n_bytes, const si1 *function, si4 line, ui4 be
 #define TIME_SERIES_INDEX_PROTECTED_REGION_OFFSET		40
 #define TIME_SERIES_INDEX_PROTECTED_REGION_BYTES		4
 #define TIME_SERIES_INDEX_RED_BLOCK_FLAGS_OFFSET		44		// ui1
-#define RED_BLOCK_FLAGS_BYTES					1
 #define TIME_SERIES_INDEX_RED_BLOCK_PROTECTED_REGION_OFFSET	45
 #define RED_BLOCK_PROTECTED_REGION_BYTES			3
 #define TIME_SERIES_INDEX_RED_BLOCK_DISCRETIONARY_REGION_OFFSET	48
@@ -644,7 +651,7 @@ typedef struct {
         si1			session_description[METADATA_SESSION_DESCRIPTION_BYTES]; // utf8[511];
         si8			recording_duration;
         // type-specific fields
-	si1			reference_description[METADATA_CHANNEL_DESCRIPTION_BYTES]; // utf8[511];
+	si1			reference_description[TIME_SERIES_METADATA_REFERENCE_DESCRIPTION_BYTES]; // utf8[511];
 	si8			acquisition_channel_number;
         sf8			sampling_frequency;
         sf8			low_frequency_filter_setting;
@@ -900,8 +907,9 @@ si8			generate_recording_time_offset(si8 recording_start_time_uutc, si4 GMT_offs
 si1			*generate_segment_name(FILE_PROCESSING_STRUCT *fps, si1 *segment_name);
 ui1			*generate_UUID(ui1 *uuid);
 FILE_PROCESSING_DIRECTIVES *initialize_file_processing_directives(FILE_PROCESSING_DIRECTIVES *directives);
-void			initialize_MEF_globals(void);
+void		initialize_MEF_globals(void);
 si4			initialize_meflib(void);
+void		free_meflib(void);
 si4			initialize_metadata(FILE_PROCESSING_STRUCT *fps);
 si4			initialize_universal_header(FILE_PROCESSING_STRUCT *fps, si1 generate_level_UUID, si1 generate_file_UUID, si1 originating_file);
 si1			*local_date_time_string(si8 uutc_time, si1 *time_str);
@@ -925,7 +933,7 @@ FILE_PROCESSING_STRUCT	*read_MEF_file(FILE_PROCESSING_STRUCT *fps, si1 *file_nam
 SEGMENT			*read_MEF_segment(SEGMENT *segment, si1 *seg_path, si4 channel_type, si1 *password, PASSWORD_DATA *password_data, si1 read_time_series_data, si1 read_record_data);
 SESSION			*read_MEF_session(SESSION *session, si1 *sess_path, si1 *password, PASSWORD_DATA *password_data, si1 read_time_series_data, si1 read_record_data);
 si4			reallocate_file_processing_struct(FILE_PROCESSING_STRUCT *fps, si8 raw_data_bytes);
-si4                     remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_frequency, sf8 *template);
+si4                     remove_line_noise(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_frequency, sf8 *template_array);
 void			remove_line_noise_adaptive(si4 *data, si8 n_samps, sf8 sampling_frequency, sf8 line_frequency, si4 n_cycles);
 void			remove_recording_time_offset(si8 *time);
 void			show_file_processing_struct(FILE_PROCESSING_STRUCT *fps);

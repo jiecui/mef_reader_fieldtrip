@@ -7,8 +7,8 @@ MED/MEF Data Format FieldTrip External Toolbox (mef_reader_fieldtrip)
 Introduction
 ------------
 
-**mef_reader_fieldtrip** is a [Fieldtrip](http://www.fieldtriptoolbox.org/) external toolbox that reads data compressed in Multiscale Electrophysiology Format (or Mayo EEG File, MEF) and, an upgraded format, Multiscale Electrophysiology Data (MED).
-Current version is capable of reading [MEF Version 2.1](https://github.com/benbrinkmann/mef_lib_2_1), [3.0](https://msel.mayo.edu/codes.html) and [MED version 1.0](http://darkhorseneuro.com/) files.
+**mef_reader_fieldtrip** is a MATLAB toolbox that can be used in combination with [Fieldtrip](http://www.fieldtriptoolbox.org/) to read data compressed in Multiscale Electrophysiology Format (or Mayo EEG File, MEF) and, an upgraded format, Multiscale Electrophysiology Data (MED).
+The current version is capable of reading [MEF Version 2.1](https://github.com/benbrinkmann/mef_lib_2_1), [3.0](https://msel.mayo.edu/codes.html) and [MED version 1.0](http://darkhorseneuro.com/) files.
 The code of **mef_reader_fieldtrip** is hosted on Github [repository](https://github.com/jiecui/mef_reader_fieldtrip).
 The backbone of the toolbox is a C-MEX package which is also employed in [MEF_import](https://github.com/jiecui/MEF_import) to import MEF/MED datasets into [EEGLAB](https://sccn.ucsd.edu/eeglab/index.php).
 
@@ -20,17 +20,16 @@ Installation
     ```matlab
     addpath(genpath('/path/to/DHN/root'))
     ```
+Note that this code is needed for the MED 1.0 format, and that the downloaded mex-files have been pre-compiled. An incompatibility between your system's libraries and the actual libraries that are expected by the mex-file cannot be resolved. A typical solution would be to compile the source code on your system, but in absence of source code this will not be possible.
 
-1. Download and install [FieldTrip](https://github.com/fieldtrip/fieldtrip). Assume that the root directory of FieldTrip is `/path/to/fieldtrip/root/folder`.
-(_Please note that at present, **mef_reader_fieldtrip** has not been merged officially into FieldTrip.
-You may download a fork of FieldTrip [here](https://github.com/jiecui/fieldtrip/tree/master), where the toolbox has been installed_).
+1. Download a recent FieldTrip version, or clone the master branch of [FieldTrip](https://github.com/fieldtrip/fieldtrip). Ensure the MATLAB path settings to be correct by executing the ```ft_defaults``` script in the FieldTrip root folder: `/path/to/fieldtrip/root/folder`.
 
    ```matlab
    addpath('/path/to/fieldtrip/root/folder')
    ft_defaults
    ```
 
-1. Download [mef_reader_fieldtrip](https://github.com/jiecui/mef_reader_fieldtrip) package and unzip it if necessary.
+1. Download or clone [mef_reader_fieldtrip](https://github.com/jiecui/mef_reader_fieldtrip) package and unzip it if necessary.
 1. If the version of Fieldtrip is not capable of recognizing MEF data type, look for the directory `fieldtrip` in **mef_reader_fieldtrip** package and then copy it to the root directory of FieldTrip `/path/to/fieldtrip/root/folder`.
 1. Otherwise, check the `external` directory of Fieldtrip. If the folder `mayo_mef` exists, go to next step. If not, only copy the folder `mayo_mef` under the directory `external` of **mef_reader_fieldtrip** package to the `external` directory of FieldTrip.
 1. In MATLAB, install the **mayo_mef** external toolbox by typing command

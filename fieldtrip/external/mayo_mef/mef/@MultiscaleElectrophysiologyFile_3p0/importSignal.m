@@ -36,7 +36,7 @@ function [x, t, t_unit] = importSignal(this, start_end, st_unit, filepath, filen
     % See also .
 
     % Copyright 2020-2025 Richard J. Cui. Created: Wed 02/05/2020 10:24:56.722 PM
-    % $Revision: 0.4 $  $Date: Thu 09/11/2025 10:30:39.673 AM $
+    % $Revision: 0.5 $  $Date: Mon 09/15/2025 13:56:57.521 PM $
     %
     % Multimodel Neuroimaging Lab (Dr. Dora Hermes)
     % Mayo Clinic St. Mary Campus
@@ -193,8 +193,14 @@ function [x, t, t_unit] = importSignal(this, start_end, st_unit, filepath, filen
     end % if
 
     if nargout > 2
-        t_unit_abs = this.SampleIndex2Time(t, st_unit);
-        t_unit = this.abs2relativeTimePoint(t_unit_abs, st_unit);
+
+        if st_unit == "index"
+            t_unit = t;
+        else
+            t_unit_abs = this.SampleIndex2Time(t, st_unit);
+            t_unit = this.abs2relativeTimePoint(t_unit_abs, st_unit);
+        end % if
+
     end % if
 
     if verbo, fprintf('Done!\n'), end % if
